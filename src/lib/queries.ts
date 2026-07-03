@@ -245,14 +245,20 @@ export async function getChannelBySlug(slug: string): Promise<Channel | null> {
 }
 
 /** Search long-form videos using semantic search (CLIP embeddings). */
-export async function searchHomeVideos(query: string): Promise<(Video & { similarity: number })[]> {
+export async function searchHomeVideos(query: string, precomputedVector?: number[]): Promise<(Video & { similarity: number })[]> {
   if (!query || !query.trim()) {
     const fallback = await getHomeVideos();
     return fallback.map(v => ({ ...v, similarity: 1.0 }));
   }
 
-  console.log(`[Semantic Search] Generating embedding for query: "${query}"`);
-  const queryVector = await getTextEmbedding(query);
+  let queryVector: number[];
+  if (precomputedVector && precomputedVector.length === 512) {
+    console.log(`[Semantic Search] Using precomputed vector for query: "${query}"`);
+    queryVector = precomputedVector;
+  } else {
+    console.log(`[Semantic Search] Generating embedding for query: "${query}"`);
+    queryVector = await getTextEmbedding(query);
+  }
 
   const titleDist = cosineDistance(videos.titleEmbedding, queryVector);
   const descDist = cosineDistance(videos.descriptionEmbedding, queryVector);
@@ -296,13 +302,19 @@ export async function searchHomeVideos(query: string): Promise<(Video & { simila
 }
 
 /** Search short-form vertical videos using semantic search (CLIP embeddings). */
-export async function searchHomeShorts(query: string): Promise<(Short & { similarity: number })[]> {
+export async function searchHomeShorts(query: string, precomputedVector?: number[]): Promise<(Short & { similarity: number })[]> {
   if (!query || !query.trim()) {
     const fallback = await getHomeShorts();
     return fallback.map(s => ({ ...s, similarity: 1.0 }));
   }
 
-  const queryVector = await getTextEmbedding(query);
+  let queryVector: number[];
+  if (precomputedVector && precomputedVector.length === 512) {
+    console.log(`[Semantic Search] Using precomputed vector for query: "${query}"`);
+    queryVector = precomputedVector;
+  } else {
+    queryVector = await getTextEmbedding(query);
+  }
 
   const titleDist = cosineDistance(shorts.titleEmbedding, queryVector);
   const thumbDist = cosineDistance(shorts.thumbnailEmbedding, queryVector);

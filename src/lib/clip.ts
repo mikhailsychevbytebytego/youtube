@@ -1,8 +1,4 @@
-import { AutoTokenizer, AutoProcessor, CLIPTextModelWithProjection, CLIPVisionModelWithProjection, RawImage, env } from "@xenova/transformers";
 import path from "node:path";
-
-// Cache models in the local workspace directory to prevent repeated downloads
-env.cacheDir = path.join(process.cwd(), ".cache");
 
 const MODEL_ID = "Xenova/clip-vit-base-patch32";
 
@@ -10,6 +6,7 @@ let tokenizer: any = null;
 let textModel: any = null;
 let processor: any = null;
 let visionModel: any = null;
+let RawImageClass: any = null;
 
 const lastLoggedProgress: Record<string, number> = {};
 
@@ -38,6 +35,20 @@ function progressCallback(info: any) {
 }
 
 async function initTextPipeline() {
+  if (tokenizer && textModel) return;
+
+  console.log(`[CLIP Init] Dynamically importing @xenova/transformers for Text...`);
+  const { AutoTokenizer, CLIPTextModelWithProjection, env } = await import("@xenova/transformers");
+  
+  const isVercel = !!process.env.VERCEL || process.env.USE_BROWSER_AI === "true";
+  env.cacheDir = isVercel ? "/tmp/.cache" : path.join(process.cwd(), ".cache");
+
+  const backends = env.backends as any;
+  if (isVercel && backends && typeof backends.setPriority === "function") {
+    console.log(`[CLIP Init] Setting @xenova/transformers backend priority to WASM for Vercel compatibility`);
+    backends.setPriority(["wasm", "cpu"]);
+  }
+
   if (!tokenizer) {
     console.log(`[CLIP Init] Initializing Tokenizer for ${MODEL_ID}...`);
     tokenizer = await AutoTokenizer.from_pretrained(MODEL_ID, { progress_callback: progressCallback });
@@ -51,6 +62,21 @@ async function initTextPipeline() {
 }
 
 async function initVisionPipeline() {
+  if (processor && visionModel && RawImageClass) return;
+
+  console.log(`[CLIP Init] Dynamically importing @xenova/transformers for Vision...`);
+  const { AutoProcessor, CLIPVisionModelWithProjection, RawImage, env } = await import("@xenova/transformers");
+  
+  const isVercel = !!process.env.VERCEL || process.env.USE_BROWSER_AI === "true";
+  env.cacheDir = isVercel ? "/tmp/.cache" : path.join(process.cwd(), ".cache");
+  RawImageClass = RawImage;
+
+  const backends = env.backends as any;
+  if (isVercel && backends && typeof backends.setPriority === "function") {
+    console.log(`[CLIP Init] Setting @xenova/transformers backend priority to WASM for Vercel compatibility`);
+    backends.setPriority(["wasm", "cpu"]);
+  }
+
   if (!processor) {
     console.log(`[CLIP Init] Initializing Image Processor for ${MODEL_ID}...`);
     processor = await AutoProcessor.from_pretrained(MODEL_ID, { progress_callback: progressCallback });
@@ -79,7 +105,9 @@ export async function getTextEmbedding(text: string): Promise<number[]> {
     return new Array(512).fill(0);
   }
   const snippet = text.length > 50 ? `${text.slice(0, 50)}...` : text;
-  console.log(`[CLIP Embeddings] Generating text embedding for: "${snippet}"`);
+  const isWasmOnly = process.env.FORCE_WASM === "true" || !!process.env.VERCEL;
+
+  console.log(`[CLIP Embeddings] Generating text embedding (${isWasmOnly ? "WASM fallback" : "local CPU/GPU"}) for: "${snippet}"`);
   
   await initTextPipeline();
   
@@ -112,11 +140,11 @@ export async function getImageEmbedding(urlOrBuffer: string | Buffer): Promise<n
   try {
     const readStart = Date.now();
     if (Buffer.isBuffer(urlOrBuffer)) {
-      image = await RawImage.fromBlob(new Blob([new Uint8Array(urlOrBuffer)]));
+      image = await RawImageClass.fromBlob(new Blob([new Uint8Array(urlOrBuffer)]));
     } else if (typeof urlOrBuffer === "string" && urlOrBuffer.startsWith("data:")) {
       const base64Data = urlOrBuffer.split(",")[1];
       const buffer = Buffer.from(base64Data, "base64");
-      image = await RawImage.fromBlob(new Blob([new Uint8Array(buffer)]));
+      image = await RawImageClass.fromBlob(new Blob([new Uint8Array(buffer)]));
     } else {
       let imageInput: string;
       if (typeof urlOrBuffer === "string") {
@@ -130,7 +158,7 @@ export async function getImageEmbedding(urlOrBuffer: string | Buffer): Promise<n
       } else {
         imageInput = urlOrBuffer;
       }
-      image = await RawImage.read(imageInput);
+      image = await RawImageClass.read(imageInput);
     }
     const processStart = Date.now();
     const inputs = await processor(image);

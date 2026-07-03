@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, FormEvent, useEffect } from "react";
 import { BellDot, Cat, CircleX, Menu, Mic, Search } from "lucide-react";
 
 import { UserMenu } from "@/components/auth/UserMenu";
@@ -8,6 +12,23 @@ interface NavbarProps {
 }
 
 export function Navbar({ searchQuery }: NavbarProps) {
+  const router = useRouter();
+  const [query, setQuery] = useState(searchQuery ?? "");
+
+  // Sync state if searchQuery prop changes (e.g. back/forward navigation or URL change)
+  useEffect(() => {
+    setQuery(searchQuery ?? "");
+  }, [searchQuery]);
+
+  function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    if (query.trim()) {
+      router.push(`/?q=${encodeURIComponent(query.trim())}`);
+    } else {
+      router.push("/");
+    }
+  }
+
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-[#f2f2f2] bg-white px-4">
       <div className="flex items-center gap-4">
@@ -26,12 +47,12 @@ export function Navbar({ searchQuery }: NavbarProps) {
         </Link>
       </div>
 
-      <form action="/" method="GET" className="flex w-full max-w-[600px] items-center gap-2">
+      <form onSubmit={handleSearch} className="flex w-full max-w-[600px] items-center gap-2">
         <div className="flex h-10 flex-1 items-center rounded-l-full border border-[#e5e5e5] pl-4 pr-2">
           <input
             type="text"
-            name="q"
-            defaultValue={searchQuery}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Search cats..."
             className="w-full bg-transparent text-base text-[#0f0f0f] outline-none placeholder:text-[#606060]"
           />
