@@ -112,11 +112,11 @@ export async function getImageEmbedding(urlOrBuffer: string | Buffer): Promise<n
   try {
     const readStart = Date.now();
     if (Buffer.isBuffer(urlOrBuffer)) {
-      image = await RawImage.fromBlob(new Blob([urlOrBuffer]));
+      image = await RawImage.fromBlob(new Blob([new Uint8Array(urlOrBuffer)]));
     } else if (typeof urlOrBuffer === "string" && urlOrBuffer.startsWith("data:")) {
       const base64Data = urlOrBuffer.split(",")[1];
       const buffer = Buffer.from(base64Data, "base64");
-      image = await RawImage.fromBlob(new Blob([buffer]));
+      image = await RawImage.fromBlob(new Blob([new Uint8Array(buffer)]));
     } else {
       let imageInput: string;
       if (typeof urlOrBuffer === "string") {

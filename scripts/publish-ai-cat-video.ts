@@ -20,6 +20,9 @@ import {
   imageSizeForFormat,
   isInteractiveFlag,
   parseDurationSeconds,
+  type ContentFormat,
+  type VideoDuration,
+  type VideoResolution,
   type PublishConfig,
 } from "./lib/publish-config";
 

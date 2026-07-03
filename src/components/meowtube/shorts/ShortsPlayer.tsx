@@ -36,7 +36,7 @@ interface ShortData {
 
 interface ShortsPlayerProps {
   currentShort: ShortData;
-  allShorts: { slug: string; title: string; thumbnailUrl: string }[];
+  allShorts: { slug: string; title: string; thumbnailUrl: string | null }[];
 }
 
 interface LocalComment {
