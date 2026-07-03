@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
-const isWasmOnly = process.env.FORCE_WASM === "true" || !!process.env.VERCEL;
+const isWasmOnly = process.env.FORCE_WASM === "true" || !!process.env.VERCEL || process.env.USE_BROWSER_AI === "true";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@xenova/transformers"],
   images: {
     remotePatterns: [
       {
