@@ -1,11 +1,11 @@
-import { desc, eq, ne, sql, cosineDistance } from "drizzle-orm";
+import { desc, eq, ne, sql, cosineDistance, and } from "drizzle-orm";
 
-import { channels, db, shorts, videos, views } from "@/db";
+import { channels, db, shorts, videos, views, comments, subscriptions } from "@/db";
 import { channelSlug, type Channel } from "@/lib/channel-data";
 import { getTextEmbedding } from "@/lib/clip";
 import { formatCount, formatDuration, formatRelativeTime } from "@/lib/format";
 import type { Short, Video } from "@/lib/meowtube-data";
-import type { Recommendation, WatchVideo } from "@/lib/watch-data";
+import type { Recommendation, WatchVideo, Comment } from "@/lib/watch-data";
 
 const FALLBACK_AVATAR = "/meowtube/profile.png";
 const FALLBACK_THUMB = "/meowtube/thumb-1.png";
@@ -81,7 +81,7 @@ export async function getWatchVideo(slug: string): Promise<WatchVideo | null> {
       publishedAt: videos.publishedAt,
       channelName: channels.name,
       channelAvatar: channels.avatarUrl,
-      subscriberCount: channels.subscriberCount,
+      subscriberCount: sql<number>`coalesce((select count(*)::bigint from subscriptions where subscriptions.channel_id = channels.id), 0)`.mapWith(Number),
     })
     .from(videos)
     .innerJoin(channels, eq(videos.channelId, channels.id))
@@ -96,6 +96,7 @@ export async function getWatchVideo(slug: string): Promise<WatchVideo | null> {
     channel: row.channelName,
     channelAvatar: row.channelAvatar ?? FALLBACK_AVATAR,
     subscribers: formatCount(row.subscriberCount, "subscribers"),
+    rawSubscriberCount: row.subscriberCount,
     poster: row.thumbnailUrl ?? FALLBACK_POSTER,
     streamId: row.videoUrl ?? undefined,
     views: formatCount(row.viewCount, "views"),
@@ -188,7 +189,7 @@ export async function getChannelBySlug(slug: string): Promise<Channel | null> {
       description: channels.description,
       avatarUrl: channels.avatarUrl,
       bannerUrl: channels.bannerUrl,
-      subscriberCount: channels.subscriberCount,
+      subscriberCount: sql<number>`coalesce((select count(*)::bigint from subscriptions where subscriptions.channel_id = channels.id), 0)`.mapWith(Number),
     })
     .from(channels);
 
@@ -198,6 +199,7 @@ export async function getChannelBySlug(slug: string): Promise<Channel | null> {
   const [channelVideos, channelShorts] = await Promise.all([
     db
       .select({
+        id: videos.id,
         slug: videos.slug,
         title: videos.title,
         thumbnailUrl: videos.thumbnailUrl,
@@ -209,6 +211,7 @@ export async function getChannelBySlug(slug: string): Promise<Channel | null> {
       .orderBy(desc(videos.publishedAt)),
     db
       .select({
+        id: shorts.id,
         slug: shorts.slug,
         title: shorts.title,
         thumbnailUrl: shorts.thumbnailUrl,
@@ -221,10 +224,11 @@ export async function getChannelBySlug(slug: string): Promise<Channel | null> {
   ]);
 
   return {
+    id: match.id,
     name: match.name,
     handle: match.handle,
     subscribers: formatCount(match.subscriberCount, "subscribers"),
-    videoCount: formatCount(channelVideos.length, "videos"),
+    rawSubscriberCount: match.subscriberCount,
     description: match.description ?? "",
     banner: match.bannerUrl ?? FALLBACK_BANNER,
     avatar: match.avatarUrl ?? FALLBACK_AVATAR,
@@ -301,6 +305,62 @@ export async function searchHomeVideos(query: string, precomputedVector?: number
   }));
 }
 
+export async function searchChannelVideos(handle: string, query: string, precomputedVector?: number[]): Promise<(Video & { similarity: number })[]> {
+  const channel = await getChannelBySlug(handle);
+  if (!channel) return [];
+
+  if (!query || !query.trim()) {
+    return channel.videos.map(v => ({ ...v, similarity: 1.0, channel: channel.name, channelAvatar: channel.avatar }));
+  }
+
+  let queryVector: number[];
+  if (precomputedVector && precomputedVector.length === 512) {
+    queryVector = precomputedVector;
+  } else {
+    queryVector = await getTextEmbedding(query);
+  }
+
+  const titleDist = cosineDistance(videos.titleEmbedding, queryVector);
+  const descDist = cosineDistance(videos.descriptionEmbedding, queryVector);
+  const thumbDist = cosineDistance(videos.thumbnailEmbedding, queryVector);
+
+  const combinedDistance = sql<number>`least(
+    coalesce(${titleDist}, 1.0),
+    coalesce(${descDist}, 1.0),
+    coalesce(${thumbDist}, 1.0)
+  )`;
+
+  const similarity = sql<number>`1 - ${combinedDistance}`;
+
+  const rows = await db
+    .select({
+      slug: videos.slug,
+      title: videos.title,
+      thumbnailUrl: videos.thumbnailUrl,
+      viewCount: finishedVideoViews,
+      publishedAt: videos.publishedAt,
+      channelName: channels.name,
+      channelAvatar: channels.avatarUrl,
+      similarity,
+    })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(eq(channels.id, channel.id))
+    .orderBy(desc(similarity))
+    .limit(20);
+
+  return rows.map((row) => ({
+    id: row.slug,
+    title: row.title,
+    channel: row.channelName,
+    channelAvatar: row.channelAvatar ?? FALLBACK_AVATAR,
+    thumbnail: row.thumbnailUrl ?? FALLBACK_THUMB,
+    views: formatCount(row.viewCount, "views"),
+    publishedAt: formatRelativeTime(row.publishedAt),
+    similarity: Number(row.similarity),
+  }));
+}
+
 /** Search short-form vertical videos using semantic search (CLIP embeddings). */
 export async function searchHomeShorts(query: string, precomputedVector?: number[]): Promise<(Short & { similarity: number })[]> {
   if (!query || !query.trim()) {
@@ -362,7 +422,7 @@ export async function getWatchShort(slug: string) {
       channelId: channels.id,
       channelName: channels.name,
       channelAvatar: channels.avatarUrl,
-      subscriberCount: channels.subscriberCount,
+      subscriberCount: sql<number>`coalesce((select count(*)::bigint from subscriptions where subscriptions.channel_id = channels.id), 0)`.mapWith(Number),
     })
     .from(shorts)
     .innerJoin(channels, eq(shorts.channelId, channels.id))
@@ -437,5 +497,39 @@ export async function getUserWatchHistory(userId: string): Promise<Video[]> {
     thumbnail: row.thumbnailUrl ?? FALLBACK_THUMB,
     views: formatCount(row.viewCount, "views"),
     publishedAt: formatRelativeTime(row.publishedAt),
+  }));
+}
+
+/** Fetch comments for a specific video */
+export async function getVideoComments(slug: string): Promise<Comment[]> {
+  const video = await db
+    .select({ id: videos.id })
+    .from(videos)
+    .where(eq(videos.slug, slug))
+    .limit(1);
+
+  if (!video.length) return [];
+
+  const rows = await db
+    .select({
+      id: comments.id,
+      text: comments.text,
+      likeCount: comments.likeCount,
+      createdAt: comments.createdAt,
+      channelName: channels.name,
+      channelAvatar: channels.avatarUrl,
+    })
+    .from(comments)
+    .innerJoin(channels, eq(comments.channelId, channels.id))
+    .where(eq(comments.videoId, video[0].id))
+    .orderBy(desc(comments.createdAt));
+
+  return rows.map((row) => ({
+    id: row.id,
+    author: row.channelName,
+    avatar: row.channelAvatar ?? FALLBACK_AVATAR,
+    timeAgo: formatRelativeTime(row.createdAt),
+    text: row.text,
+    likes: formatCount(row.likeCount),
   }));
 }

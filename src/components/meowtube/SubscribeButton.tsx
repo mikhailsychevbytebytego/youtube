@@ -38,7 +38,7 @@ export function SubscribeButton({
         if (res.success) {
           setSubscribed(false);
           if (typeof window !== "undefined") {
-            window.dispatchEvent(new Event("subscription-change"));
+            window.dispatchEvent(new CustomEvent("subscription-change", { detail: { channelName, subscribed: false } }));
           }
         } else if (res.error) {
           alert(res.error);
@@ -48,7 +48,7 @@ export function SubscribeButton({
         if (res.success) {
           setSubscribed(true);
           if (typeof window !== "undefined") {
-            window.dispatchEvent(new Event("subscription-change"));
+            window.dispatchEvent(new CustomEvent("subscription-change", { detail: { channelName, subscribed: true } }));
           }
         } else if (res.error) {
           alert(res.error);

@@ -1,15 +1,15 @@
 import { Image } from "@/components/Image";
 import Link from "next/link";
 import {
-  Download,
   MoreHorizontal,
-  SquareArrowOutUpRight,
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
 import { channelHref } from "@/lib/channel-data";
 import type { WatchVideo } from "@/lib/watch-data";
 import { SubscribeButton } from "@/components/meowtube/SubscribeButton";
+
+import { SubscriberCount } from "@/components/meowtube/SubscriberCount";
 
 function PillButton({
   children,
@@ -22,7 +22,7 @@ function PillButton({
     <button
       type="button"
       aria-label={label}
-      className="flex items-center gap-2 rounded-full bg-[#f2f2f2] px-3 py-2 text-sm font-medium text-[#0f0f0f] transition-colors hover:bg-[#e8e8e8]"
+      className="flex items-center gap-2 rounded-full bg-muted px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-hover"
     >
       {children}
     </button>
@@ -48,14 +48,11 @@ export function WatchInfo({ video }: { video: WatchVideo }) {
               <span className="text-base font-semibold text-foreground group-hover:text-foreground">
                 {video.channel}
               </span>
-              <span className="text-xs text-muted-foreground">{video.subscribers}</span>
+              <SubscriberCount channelName={video.channel} initialCount={video.rawSubscriberCount} />
             </div>
           </Link>
           <SubscribeButton channelName={video.channel} className="ml-2 px-4 py-2" />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 items-center rounded-full bg-muted">
+          <div className="ml-4 flex h-9 items-center rounded-full bg-muted">
             <button
               type="button"
               aria-label="Like"
@@ -72,14 +69,9 @@ export function WatchInfo({ video }: { video: WatchVideo }) {
               <ThumbsDown className="size-5" />
             </button>
           </div>
-          <PillButton label="Share">
-            <SquareArrowOutUpRight className="size-5" />
-            Share
-          </PillButton>
-          <PillButton label="Download">
-            <Download className="size-5" />
-            Download
-          </PillButton>
+        </div>
+
+        <div className="flex items-center gap-2">
           <PillButton label="More">
             <MoreHorizontal className="size-5" />
           </PillButton>

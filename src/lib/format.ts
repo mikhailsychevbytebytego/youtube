@@ -4,7 +4,11 @@
  */
 export function formatCount(value: number, unit?: string): string {
   const compact = compactNumber(value);
-  return unit ? `${compact} ${unit}` : compact;
+  if (!unit) return compact;
+  if (value === 1 && unit.endsWith("s")) {
+    return `${compact} ${unit.slice(0, -1)}`;
+  }
+  return `${compact} ${unit}`;
 }
 
 function compactNumber(value: number): string {

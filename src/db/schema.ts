@@ -49,7 +49,6 @@ export const channels = pgTable(
     description: text(),
     avatarUrl: text(),
     bannerUrl: text(),
-    subscriberCount: bigint({ mode: "number" }).notNull().default(0),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
@@ -147,6 +146,7 @@ export const channelsRelations = relations(channels, ({ one, many }) => ({
   }),
   videos: many(videos),
   shorts: many(shorts),
+  comments: many(comments),
 }));
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -155,6 +155,7 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
     references: [channels.id],
   }),
   views: many(views),
+  comments: many(comments),
 }));
 
 export const viewsRelations = relations(views, ({ one }) => ({
@@ -165,6 +166,39 @@ export const viewsRelations = relations(views, ({ one }) => ({
   user: one(users, {
     fields: [views.userId],
     references: [users.id],
+  }),
+}));
+
+export const comments = pgTable(
+  "comments",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    videoId: uuid()
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    channelId: uuid()
+      .notNull()
+      .references(() => channels.id, { onDelete: "cascade" }),
+    text: text().notNull(),
+    likeCount: bigint({ mode: "number" }).notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("comments_video_channel_idx").on(t.videoId, t.channelId),
+    index("comments_video_id_idx").on(t.videoId),
+    index("comments_channel_id_idx").on(t.channelId),
+  ],
+);
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+  video: one(videos, {
+    fields: [comments.videoId],
+    references: [videos.id],
+  }),
+  channel: one(channels, {
+    fields: [comments.channelId],
+    references: [channels.id],
   }),
 }));
 
@@ -218,3 +252,5 @@ export type View = typeof views.$inferSelect;
 export type NewView = typeof views.$inferInsert;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
+export type Comment = typeof comments.$inferSelect;
+export type NewComment = typeof comments.$inferInsert;

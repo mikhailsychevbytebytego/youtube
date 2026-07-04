@@ -43,14 +43,6 @@ export async function subscribeToChannel(channelName: string) {
       channelId: targetChannel.id,
     });
 
-    // Increment subscriberCount
-    await db
-      .update(channels)
-      .set({
-        subscriberCount: sql`${channels.subscriberCount} + 1`,
-      })
-      .where(eq(channels.id, targetChannel.id));
-
     revalidatePath("/", "layout");
     return { success: true };
   } catch (err) {
@@ -92,14 +84,6 @@ export async function unsubscribeFromChannel(channelName: string) {
     await db
       .delete(subscriptions)
       .where(and(eq(subscriptions.userId, userId), eq(subscriptions.channelId, targetChannel.id)));
-
-    // Decrement subscriberCount
-    await db
-      .update(channels)
-      .set({
-        subscriberCount: sql`CASE WHEN ${channels.subscriberCount} > 0 THEN ${channels.subscriberCount} - 1 ELSE 0 END`,
-      })
-      .where(eq(channels.id, targetChannel.id));
 
     revalidatePath("/", "layout");
     return { success: true };
@@ -247,13 +231,13 @@ export async function getSuggestedChannels() {
       .from(subscriptions)
       .where(eq(subscriptions.userId, userId));
       
-    // Exclude subscribed channels
+    // Calculate actual subscribers
     rows = await db
       .select({
         name: channels.name,
         handle: channels.handle,
         avatarUrl: channels.avatarUrl,
-        subscriberCount: channels.subscriberCount,
+        subscriberCount: sql<number>`coalesce((select count(*)::bigint from subscriptions where subscriptions.channel_id = channels.id), 0)`.mapWith(Number),
         description: channels.description,
       })
       .from(channels)
@@ -268,7 +252,7 @@ export async function getSuggestedChannels() {
         name: channels.name,
         handle: channels.handle,
         avatarUrl: channels.avatarUrl,
-        subscriberCount: channels.subscriberCount,
+        subscriberCount: sql<number>`coalesce((select count(*)::bigint from subscriptions where subscriptions.channel_id = channels.id), 0)`.mapWith(Number),
         description: channels.description,
       })
       .from(channels)

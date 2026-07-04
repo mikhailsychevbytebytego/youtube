@@ -5,7 +5,7 @@ import path from "node:path";
 
 import { getTextEmbedding, getImageEmbedding } from "../lib/clip";
 
-import { channels, db, shorts, users, videos, views } from "./index";
+import { channels, db, shorts, users, videos, views, subscriptions } from "./index";
 
 /**
  * Idempotent seed for the MeowTube catalog. Mirrors the mock data that used to
@@ -282,6 +282,10 @@ async function seed() {
     sql`TRUNCATE TABLE views, users, channels, videos, shorts, session, account, verification RESTART IDENTITY CASCADE;`,
   );
 
+  if (extraViewers.length > 0) {
+    await db.insert(users).values(extraViewers).onConflictDoNothing();
+  }
+
   let videoCount = 0;
   let shortCount = 0;
 
@@ -308,13 +312,36 @@ async function seed() {
         description: def.description,
         avatarUrl: def.avatar,
         bannerUrl: def.banner ?? FALLBACK_BANNER,
-        subscriberCount,
       })
       .returning({ id: channels.id });
-  }
 
-  if (extraViewers.length > 0) {
-    await db.insert(users).values(extraViewers);
+    // Seed subscriptions for this channel
+    const numSubscribers = parseCount(def.subscribers);
+    if (numSubscribers > 0) {
+      // Rather than inserting potentially millions of rows, we'll just insert a few real
+      // subscriptions so the system behaves consistently (e.g. user subscribed). 
+      // For accurate seeding, if you want "millions" of rows, it's not feasible here.
+      // So instead, we could just create dummy users or let the actual subscription count
+      // reflect reality. To avoid 500k empty users, we will only add subscriptions for 
+      // the existing extra viewers if requested, or none.
+      // For the sake of the assignment, the real subscriber count will start from 0 
+      // (or however many real users we add) unless we add bots. Let's add the extraViewers
+      // as subscribers to every channel to have at least some counts.
+      if (extraViewers.length > 0) {
+        // Find their inserted IDs
+        const extraHandles = extraViewers.map(e => e.handle);
+        const placeholders = extraHandles.map(() => '?').join(', ');
+        const dbUsers = await db.execute(sql`
+          SELECT id FROM users WHERE handle IN (${sql.raw(extraHandles.map(h => `'${h}'`).join(','))})
+        `);
+        for (const u of dbUsers as any) {
+          await db.insert(subscriptions).values({
+            userId: u.id,
+            channelId: channel.id,
+          }).onConflictDoNothing();
+        }
+      }
+    }
   }
 
   // Restore cached AI videos if any exist

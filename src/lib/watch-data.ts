@@ -27,6 +27,7 @@ export type WatchVideo = {
   channel: string;
   channelAvatar: string;
   subscribers: string;
+  rawSubscriberCount: number;
   poster: string;
   /** Cloudflare Stream video UID when the video was uploaded. */
   streamId?: string;
@@ -46,6 +47,7 @@ export const featuredVideo: WatchVideo = {
   channel: "Whiskers Wonders",
   channelAvatar: "/meowtube/watch/w-channel.png",
   subscribers: "1.3M subscribers",
+  rawSubscriberCount: 1300000,
   poster: "/meowtube/watch/w-player.png",
   views: "1.3M views",
   publishedAt: "2 weeks ago",

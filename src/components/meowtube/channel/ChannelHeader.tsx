@@ -29,8 +29,8 @@ export function ChannelHeader({ channel }: { channel: Channel }) {
         <div className="flex min-w-0 flex-1 flex-col items-center gap-3 text-center sm:items-start sm:text-left">
           <div className="flex flex-col gap-0.5">
             <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{channel.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {channel.handle} • {channel.subscribers} • {channel.videoCount}
+            <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+              {channel.handle} • {channel.subscribers} • {channel.videos.length} video{channel.videos.length !== 1 ? 's' : ''}
             </p>
           </div>
           <p className="max-w-2xl truncate text-sm text-muted-foreground">{channel.description}</p>

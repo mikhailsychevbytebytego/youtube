@@ -15,7 +15,8 @@
     "generate:cat-image": "node --env-file=.env --import tsx scripts/generate-cat-image.ts",
     "generate:cat-video": "node --env-file=.env --import tsx scripts/generate-cat-video.ts",
     "publish:ai-cat-video": "node --env-file=.env --import tsx scripts/publish-ai-cat-video.ts",
-    "publish:ai-cat-video:interactive": "node --env-file=.env --import tsx scripts/publish-ai-cat-video.ts -- --interactive"
+    "publish:ai-cat-video:interactive": "node --env-file=.env --import tsx scripts/publish-ai-cat-video.ts -- --interactive",
+    "generate:ai-comments": "node --env-file=.env --import tsx scripts/generate-ai-comments.ts"
   },
   "dependencies": {
     "@cloudflare/stream-react": "^1.9.3",

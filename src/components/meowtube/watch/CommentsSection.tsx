@@ -1,13 +1,13 @@
 import { Image } from "@/components/Image";
 import { SlidersHorizontal, ThumbsDown, ThumbsUp } from "lucide-react";
-import { commentCount, comments, viewerAvatar } from "@/lib/watch-data";
+import { viewerAvatar, type Comment } from "@/lib/watch-data";
 
-export function CommentsSection() {
+export function CommentsSection({ comments }: { comments: Comment[] }) {
   return (
     <section className="flex w-full flex-col gap-6 pt-6">
       <div className="flex items-center gap-8">
-        <h2 className="text-xl font-bold text-black">{commentCount}</h2>
-        <button type="button" className="flex items-center gap-2 text-sm font-medium text-black">
+        <h2 className="text-xl font-bold text-foreground">{comments.length} Comments</h2>
+        <button type="button" className="flex items-center gap-2 text-sm font-medium text-foreground">
           <SlidersHorizontal className="size-6" />
           Sort by
         </button>
@@ -24,7 +24,7 @@ export function CommentsSection() {
         <input
           type="text"
           placeholder="Add a comment..."
-          className="flex-1 border-b border-[#e5e5e5] pb-2 text-sm text-black outline-none placeholder:text-[#606060] focus:border-[#0f0f0f]"
+          className="flex-1 border-b border-border pb-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-foreground bg-transparent"
         />
       </div>
 
@@ -40,17 +40,16 @@ export function CommentsSection() {
             />
             <div className="flex flex-1 flex-col gap-1">
               <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-black">{comment.author}</span>
-                <span className="text-xs text-[#606060]">{comment.timeAgo}</span>
+                <span className="text-[13px] font-semibold text-foreground">{comment.author}</span>
+                <span className="text-xs text-muted-foreground">{comment.timeAgo}</span>
               </div>
-              <p className="text-sm leading-[1.4] text-black">{comment.text}</p>
+              <p className="text-sm leading-[1.4] text-foreground">{comment.text}</p>
               <div className="flex items-center gap-4 pt-2">
-                <span className="flex items-center gap-1 text-xs text-[#606060]">
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <ThumbsUp className="size-4" />
-                  {comment.likes}
                 </span>
-                <ThumbsDown className="size-4 text-[#606060]" />
-                <button type="button" className="text-xs font-semibold text-black">
+                <ThumbsDown className="size-4 text-muted-foreground" />
+                <button type="button" className="text-xs font-semibold text-foreground">
                   Reply
                 </button>
               </div>

@@ -6,7 +6,7 @@ import { Sidebar } from "@/components/meowtube/Sidebar";
 import { UpNext } from "@/components/meowtube/watch/UpNext";
 import { VideoPlayer } from "@/components/meowtube/watch/VideoPlayer";
 import { WatchInfo } from "@/components/meowtube/watch/WatchInfo";
-import { getRecommendations, getWatchVideo } from "@/lib/queries";
+import { getRecommendations, getWatchVideo, getVideoComments } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -26,9 +26,10 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
 
 export default async function WatchPage({ params }: WatchPageProps) {
   const { id } = await params;
-  const [video, recommendations] = await Promise.all([
+  const [video, recommendations, comments] = await Promise.all([
     getWatchVideo(id),
     getRecommendations(id),
+    getVideoComments(id),
   ]);
 
   if (!video) notFound();
@@ -42,7 +43,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
           <div className="flex min-w-0 flex-1 flex-col">
             <VideoPlayer video={video} />
             <WatchInfo video={video} />
-            <CommentsSection />
+            <CommentsSection comments={comments} />
           </div>
           <UpNext recommendations={recommendations} />
         </div>
