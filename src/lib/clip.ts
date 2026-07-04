@@ -44,7 +44,8 @@ async function initTextPipeline() {
   env.cacheDir = isVercel ? "/tmp/.cache" : path.join(process.cwd(), ".cache");
 
   const backends = env.backends as any;
-  if (isVercel && backends && typeof backends.setPriority === "function") {
+  // Only force WASM if explicitly requested, otherwise allow Node CPU backend
+  if (process.env.FORCE_WASM === "true" && backends && typeof backends.setPriority === "function") {
     console.log(`[CLIP Init] Setting @xenova/transformers backend priority to WASM for Vercel compatibility`);
     backends.setPriority(["wasm", "cpu"]);
   }
@@ -72,7 +73,7 @@ async function initVisionPipeline() {
   RawImageClass = RawImage;
 
   const backends = env.backends as any;
-  if (isVercel && backends && typeof backends.setPriority === "function") {
+  if (process.env.FORCE_WASM === "true" && backends && typeof backends.setPriority === "function") {
     console.log(`[CLIP Init] Setting @xenova/transformers backend priority to WASM for Vercel compatibility`);
     backends.setPriority(["wasm", "cpu"]);
   }
@@ -105,7 +106,7 @@ export async function getTextEmbedding(text: string): Promise<number[]> {
     return new Array(512).fill(0);
   }
   const snippet = text.length > 50 ? `${text.slice(0, 50)}...` : text;
-  const isWasmOnly = process.env.FORCE_WASM === "true" || !!process.env.VERCEL;
+  const isWasmOnly = process.env.FORCE_WASM === "true";
 
   console.log(`[CLIP Embeddings] Generating text embedding (${isWasmOnly ? "WASM fallback" : "local CPU/GPU"}) for: "${snippet}"`);
   

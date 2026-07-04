@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const isWasmOnly = process.env.FORCE_WASM === "true" || !!process.env.VERCEL || process.env.USE_BROWSER_AI === "true";
+const isWasmOnly = process.env.FORCE_WASM === "true";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@xenova/transformers"],
@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+  },
+  outputFileTracingIncludes: {
+    "/**": ["./node_modules/onnxruntime-node/bin/**/*"],
   },
   turbopack: {
     root: __dirname,
