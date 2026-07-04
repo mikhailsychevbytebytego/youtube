@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Image } from "@/components/Image";
 import type { Channel } from "@/lib/channel-data";
 import { SubscribeButton } from "@/components/meowtube/SubscribeButton";
 

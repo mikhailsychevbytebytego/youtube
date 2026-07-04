@@ -4,15 +4,6 @@ const isWasmOnly = process.env.FORCE_WASM === "true";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@xenova/transformers"],
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "videodelivery.net",
-        pathname: "/**",
-      },
-    ],
-  },
   outputFileTracingIncludes: {
     "/**": ["./node_modules/onnxruntime-node/bin/**/*"],
   },

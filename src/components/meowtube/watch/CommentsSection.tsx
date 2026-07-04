@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Image } from "@/components/Image";
 import { SlidersHorizontal, ThumbsDown, ThumbsUp } from "lucide-react";
 import { commentCount, comments, viewerAvatar } from "@/lib/watch-data";
 

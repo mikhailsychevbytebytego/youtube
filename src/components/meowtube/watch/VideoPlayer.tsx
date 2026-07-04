@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { Stream } from "@cloudflare/stream-react";
 import type { WatchVideo } from "@/lib/watch-data";

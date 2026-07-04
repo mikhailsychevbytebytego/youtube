@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Image } from "@/components/Image";
 import Link from "next/link";
 import { Cat } from "lucide-react";
 import type { Short } from "@/lib/meowtube-data";

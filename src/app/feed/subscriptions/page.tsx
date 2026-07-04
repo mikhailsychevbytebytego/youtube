@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { Image } from "@/components/Image";
 import { Compass, SquarePlay } from "lucide-react";
 import { getSession } from "@/lib/auth-server";
 import { Navbar } from "@/components/meowtube/Navbar";
