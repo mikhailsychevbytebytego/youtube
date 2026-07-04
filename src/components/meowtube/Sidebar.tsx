@@ -35,14 +35,14 @@ function NavRow({ item, isActive }: { item: NavItem; isActive: boolean }) {
     <Link
       href={href}
       className={`flex w-full items-center gap-6 rounded-[10px] px-3 py-2 transition-colors ${
-        isActive ? "bg-[#f2f2f2]" : "hover:bg-[#f2f2f2]"
+        isActive ? "bg-muted" : "hover:bg-hover"
       }`}
     >
-      <span className="flex size-5 items-center justify-center text-[#0f0f0f]">
+      <span className="flex size-5 items-center justify-center text-foreground">
         <Icon className="size-5" />
       </span>
       <span
-        className={`flex-1 text-sm text-[#0f0f0f] ${
+        className={`flex-1 text-sm text-foreground ${
           isActive ? "font-semibold" : "font-normal"
         }`}
       >
@@ -114,7 +114,7 @@ export function Sidebar() {
     <>
       {/* 1. COLLAPSED MINI-SIDEBAR */}
       <aside
-        className={`sticky top-14 h-[calc(100vh-3.5rem)] w-[72px] shrink-0 flex-col bg-white py-2 ${
+        className={`sticky top-14 h-[calc(100vh-3.5rem)] w-[72px] shrink-0 flex-col bg-background py-2 ${
           isWatchPage
             ? "hidden md:flex" // Always collapsed on watch page
             : "hidden md:flex xl:hidden" // Collapsed on medium/large screens for other pages
@@ -131,8 +131,8 @@ export function Sidebar() {
                 key={item.label}
                 href={href}
                 aria-label={item.label}
-                className={`flex w-full flex-col items-center justify-center rounded-lg py-3 text-[#0f0f0f] transition-colors ${
-                  isActive ? "bg-[#f2f2f2]" : "hover:bg-[#f2f2f2]"
+                className={`flex w-full flex-col items-center justify-center rounded-lg py-3 text-foreground transition-colors ${
+                  isActive ? "bg-muted" : "hover:bg-hover"
                 }`}
               >
                 <Icon className="size-6 shrink-0" />
@@ -147,7 +147,7 @@ export function Sidebar() {
 
       {/* 2. EXPANDED FULL SIDEBAR */}
       <aside
-        className={`sticky top-14 h-[calc(100vh-3.5rem)] w-60 shrink-0 flex-col gap-0 overflow-y-auto bg-white px-3 pt-3 ${
+        className={`sticky top-14 h-[calc(100vh-3.5rem)] w-60 shrink-0 flex-col gap-0 overflow-y-auto bg-background px-3 pt-3 ${
           isWatchPage
             ? "hidden" // Never expanded on watch page
             : "hidden xl:flex" // Expanded only on extra large screens for other pages
@@ -160,7 +160,7 @@ export function Sidebar() {
           })}
         </nav>
 
-        <hr className="my-3 border-[#e5e5e5]" />
+        <hr className="my-3 border-border" />
 
         <nav className="flex w-full flex-col gap-1">
           {filteredLibraryNav.map((item) => {
@@ -171,15 +171,15 @@ export function Sidebar() {
 
         {dynSubs.length > 0 && (
           <>
-            <hr className="my-3 border-[#e5e5e5]" />
+            <hr className="my-3 border-border" />
 
             <div className="flex w-full flex-col gap-1">
-              <h2 className="px-3 py-1 text-base font-semibold text-black">Subscriptions</h2>
+              <h2 className="px-3 py-1 text-base font-semibold text-foreground">Subscriptions</h2>
               {dynSubs.map((sub) => (
                 <Link
                   key={sub.name}
                   href={channelHref(sub.name)}
-                  className="flex w-full items-center gap-6 rounded-[10px] px-3 py-2 transition-colors hover:bg-[#f2f2f2]"
+                  className="flex w-full items-center gap-6 rounded-[10px] px-3 py-2 transition-colors hover:bg-hover"
                 >
                   <Image
                     src={sub.avatar}
@@ -188,7 +188,7 @@ export function Sidebar() {
                     height={24}
                     className="size-6 rounded-full object-cover shrink-0"
                   />
-                  <span className="flex-1 text-sm font-normal text-[#0f0f0f] truncate">{sub.name}</span>
+                  <span className="flex-1 text-sm font-normal text-foreground truncate">{sub.name}</span>
                   {sub.hasNotification && <span className="size-1 rounded-full bg-blue-500 shrink-0" />}
                 </Link>
               ))}

@@ -17,8 +17,8 @@ export function FilterPills() {
             onClick={() => setActive(filter)}
             className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
               isActive
-                ? "bg-[#0f0f0f] text-white"
-                : "border border-[#e5e5e5] bg-[#f2f2f2] text-[#0f0f0f] hover:bg-[#e8e8e8]"
+                ? "bg-foreground text-background"
+                : "border border-border bg-muted text-foreground hover:bg-hover"
             }`}
           >
             {filter}

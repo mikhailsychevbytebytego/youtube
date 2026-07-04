@@ -10,7 +10,7 @@ export function ChannelTabs() {
 
   return (
     <div className="flex w-full flex-col">
-      <div className="flex w-full items-center gap-8 overflow-x-auto border-b border-[#e5e5e5] py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-full items-center gap-8 overflow-x-auto border-b border-border py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {channelTabs.map((tab) => {
           const isActive = tab === activeTab;
           return (
@@ -20,15 +20,15 @@ export function ChannelTabs() {
               onClick={() => setActiveTab(tab)}
               className={`shrink-0 pb-3 text-base transition-colors ${
                 isActive
-                  ? "border-b-2 border-[#0f0f0f] font-semibold text-[#0f0f0f]"
-                  : "font-medium text-[#606060] hover:text-[#0f0f0f]"
+                  ? "border-b-2 border-foreground font-semibold text-foreground"
+                  : "font-medium text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab}
             </button>
           );
         })}
-        <button type="button" aria-label="Search this channel" className="shrink-0 pb-3 text-[#0f0f0f]">
+        <button type="button" aria-label="Search this channel" className="shrink-0 pb-3 text-foreground">
           <Search className="size-5" />
         </button>
       </div>
@@ -43,8 +43,8 @@ export function ChannelTabs() {
               onClick={() => setActiveFilter(filter)}
               className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                 isActive
-                  ? "bg-[#0f0f0f] text-white"
-                  : "bg-[#f2f2f2] text-[#0f0f0f] hover:bg-[#e8e8e8]"
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-foreground hover:bg-hover"
               }`}
             >
               {filter}

@@ -32,7 +32,7 @@ function PillButton({
 export function WatchInfo({ video }: { video: WatchVideo }) {
   return (
     <div className="flex w-full flex-col gap-3 pt-4">
-      <h1 className="text-xl font-bold text-[#0f0f0f]">{video.title}</h1>
+      <h1 className="text-xl font-bold text-foreground">{video.title}</h1>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -45,21 +45,21 @@ export function WatchInfo({ video }: { video: WatchVideo }) {
               className="size-10 rounded-full object-cover"
             />
             <div className="flex flex-col">
-              <span className="text-base font-semibold text-black group-hover:text-[#0f0f0f]">
+              <span className="text-base font-semibold text-foreground group-hover:text-foreground">
                 {video.channel}
               </span>
-              <span className="text-xs text-[#606060]">{video.subscribers}</span>
+              <span className="text-xs text-muted-foreground">{video.subscribers}</span>
             </div>
           </Link>
           <SubscribeButton channelName={video.channel} className="ml-2 px-4 py-2" />
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-full bg-[#f2f2f2]">
+          <div className="flex h-9 items-center rounded-full bg-muted">
             <button
               type="button"
               aria-label="Like"
-              className="flex items-center gap-2 border-r border-[#e5e5e5] px-3 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#e8e8e8] rounded-l-full"
+              className="flex items-center gap-2 border-r border-border px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-hover rounded-l-full"
             >
               <ThumbsUp className="size-5" />
               {video.likes}
@@ -67,7 +67,7 @@ export function WatchInfo({ video }: { video: WatchVideo }) {
             <button
               type="button"
               aria-label="Dislike"
-              className="px-3 py-2 text-black transition-colors hover:bg-[#e8e8e8] rounded-r-full"
+              className="px-3 py-2 text-foreground transition-colors hover:bg-hover rounded-r-full"
             >
               <ThumbsDown className="size-5" />
             </button>
@@ -86,11 +86,11 @@ export function WatchInfo({ video }: { video: WatchVideo }) {
         </div>
       </div>
 
-      <div className="flex w-full flex-col gap-2 rounded-xl bg-[#f2f2f2] p-3 text-sm text-black">
+      <div className="flex w-full flex-col gap-2 rounded-xl bg-muted p-3 text-sm text-foreground">
         <p className="font-semibold">
           {video.views} · {video.publishedAt}
         </p>
-        <p className="leading-[1.4]">{video.description}</p>
+        <p className="leading-[1.4] whitespace-pre-wrap">{video.description}</p>
       </div>
     </div>
   );

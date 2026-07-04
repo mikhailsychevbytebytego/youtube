@@ -34,7 +34,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
   if (!video) notFound();
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#0f0f0f]">
+    <div className="flex min-h-screen flex-col bg-background text-foreground relative">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />

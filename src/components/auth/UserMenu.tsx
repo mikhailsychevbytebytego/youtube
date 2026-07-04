@@ -19,7 +19,7 @@ export function UserMenu() {
 
   if (isPending) {
     return (
-      <div className="size-8 animate-pulse rounded-full bg-[#e5e5e5]" aria-hidden />
+      <div className="size-8 animate-pulse rounded-full bg-muted" aria-hidden />
     );
   }
 
@@ -27,7 +27,7 @@ export function UserMenu() {
     return (
       <Link
         href="/login"
-        className="rounded-full border border-[#e5e5e5] px-4 py-1.5 text-sm font-medium text-[#0f0f0f] transition-colors hover:bg-[#f8f8f8]"
+        className="rounded-full border border-border px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-hover"
       >
         Sign in
       </Link>
@@ -41,13 +41,10 @@ export function UserMenu() {
     <div className="flex items-center gap-3">
       <Link
         href="/upload"
-        className="hidden rounded-full bg-[#f2f2f2] px-4 py-1.5 text-sm font-medium text-[#0f0f0f] transition-colors hover:bg-[#e5e5e5] sm:inline-flex"
+        className="hidden rounded-full bg-muted px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-border sm:inline-flex"
       >
         Upload
       </Link>
-      <span className="hidden max-w-[140px] truncate text-sm text-[#0f0f0f] sm:inline">
-        {name}
-      </span>
       <Link href="/admin" aria-label="Open admin" className="flex">
         <Image
           src={avatar}
@@ -60,7 +57,7 @@ export function UserMenu() {
       <button
         type="button"
         onClick={handleSignOut}
-        className="rounded-full px-3 py-1.5 text-sm font-medium text-[#606060] transition-colors hover:bg-[#f8f8f8] hover:text-[#0f0f0f]"
+        className="rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
         Sign out
       </button>

@@ -19,21 +19,21 @@ export default async function Home({ searchParams }: HomeProps) {
   ]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#0f0f0f]">
+    <div className="flex min-h-screen flex-col bg-background text-foreground relative">
       <Navbar searchQuery={q} />
       <div className="flex flex-1">
         <Sidebar />
         <main className="min-w-0 flex-1 px-6 pb-10 pt-3">
           {q ? (
             <div className="mb-6">
-              <h1 className="text-xl font-bold text-black">
+              <h1 className="text-xl font-bold text-foreground">
                 You searched for &ldquo;{q}&rdquo;
               </h1>
             </div>
           ) : null}
 
           {videos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-[#606060]">
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <p className="text-lg font-semibold">No matching videos found</p>
               <p className="text-sm mt-1">Try looking for something else, like &quot;happy orange cat&quot;</p>
             </div>
@@ -47,7 +47,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
           {shorts.length > 0 && (
             <>
-              <hr className="my-6 border-[#e5e5e5]" />
+              <hr className="my-6 border-border" />
               <ShortsRow shorts={shorts} />
             </>
           )}

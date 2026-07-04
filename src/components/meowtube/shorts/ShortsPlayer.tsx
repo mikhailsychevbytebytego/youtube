@@ -67,7 +67,6 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
   const [copied, setCopied] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [revealed, setRevealed] = useState(false);
 
   // Like calculation
   const baseLikes = parseInt(currentShort.likes.replace(/[^0-9.]/g, "")) || 1200;
@@ -118,11 +117,7 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
     setLiked(false);
     setDisliked(false);
     setShowComments(false);
-    setRevealed(false);
     setIsPlaying(true);
-
-    const timer = setTimeout(() => setRevealed(true), 800);
-    return () => clearTimeout(timer);
   }, [currentShort.slug]);
 
   // Find next/prev short indexes
@@ -181,7 +176,7 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
   const streamId = currentShort.streamId ?? DEFAULT_STREAM_VIDEO_ID;
 
   return (
-    <div className="flex flex-1 justify-center items-center py-4 bg-zinc-950 text-white select-none">
+    <div className="flex flex-1 justify-center items-center py-4 bg-background text-foreground select-none">
       <div className="flex flex-col md:flex-row items-center gap-6 h-[calc(100vh-100px)] max-h-[850px] w-full max-w-4xl px-4 relative justify-center">
         
         {/* Next/Prev Navigation Buttons (Desktop left-side vertical) */}
@@ -190,7 +185,7 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
             onClick={() => prevShort && navigateTo(prevShort.slug)}
             disabled={!prevShort}
             aria-label="Previous Short"
-            className={`flex items-center justify-center size-12 rounded-full border border-zinc-700 bg-zinc-900/60 text-white hover:bg-zinc-800 transition-all ${
+            className={`flex items-center justify-center size-12 rounded-full border border-border bg-muted/80 text-foreground hover:bg-hover transition-all ${
               !prevShort ? "opacity-30 cursor-not-allowed" : "opacity-100 cursor-pointer"
             }`}
           >
@@ -200,7 +195,7 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
             onClick={() => nextShort && navigateTo(nextShort.slug)}
             disabled={!nextShort}
             aria-label="Next Short"
-            className={`flex items-center justify-center size-12 rounded-full border border-zinc-700 bg-zinc-900/60 text-white hover:bg-zinc-800 transition-all ${
+            className={`flex items-center justify-center size-12 rounded-full border border-border bg-muted/80 text-foreground hover:bg-hover transition-all ${
               !nextShort ? "opacity-30 cursor-not-allowed" : "opacity-100 cursor-pointer"
             }`}
           >
@@ -208,44 +203,30 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
           </button>
         </div>
 
-        {/* Short Player Screen Area (9:16 Aspect ratio container) */}
-        <div className="relative h-full aspect-[9/16] bg-black rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-zinc-800">
+        {/* Short Player Screen Area (4:7 Aspect ratio container) */}
+        <div className="relative h-full aspect-[4/7] bg-black rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-border">
           
           {/* Cloudflare Stream element */}
           <div
-            className={`absolute inset-0 transition-opacity duration-500 ${
-              revealed ? "opacity-100" : "opacity-0"
-            }`}
+            className={`absolute inset-0 opacity-100`}
           >
-            <Stream
-              src={streamId}
-              poster={posterUrl}
-              controls={false}
-              autoplay
-              muted={isMuted}
-              loop
-              responsive={false}
-              height="100%"
-              width="100%"
-              className="h-full w-full object-cover"
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-            />
-          </div>
-
-          {/* Fallback/Intro Poster Thumbnail */}
-          <div
-            className={`absolute inset-0 transition-opacity duration-500 pointer-events-none ${
-              revealed ? "opacity-0" : "opacity-100"
-            }`}
-          >
-            <Image
-              src={currentShort.poster}
-              alt={currentShort.title}
-              fill
-              priority
-              className="object-cover"
-            />
+            {/* Wrap stream in a 9:16 container that matches width, so height overflows and crops the top/bottom black bars */}
+            <div className="absolute left-0 top-1/2 w-full -translate-y-1/2 scale-[1.02]" style={{ aspectRatio: '9/16' }}>
+              <Stream
+                src={streamId}
+                poster={posterUrl}
+                controls={false}
+                autoplay
+                muted={isMuted}
+                loop
+                responsive={false}
+                height="100%"
+                width="100%"
+                className="h-full w-full"
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              />
+            </div>
           </div>
 
           {/* Interactive Screen Controls Overlay (Play/Pause, Mute toggles) */}
@@ -316,13 +297,13 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
               className={`flex items-center justify-center size-12 rounded-full transition-colors ${
                 liked
                   ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-zinc-800 hover:bg-zinc-700 text-white"
+                  : "bg-muted hover:bg-hover text-foreground"
               }`}
               aria-label="Like this short"
             >
               <ThumbsUp className={`size-5 ${liked ? "fill-white" : ""}`} />
             </button>
-            <span className="text-[11px] font-medium text-zinc-300">{displayLikes}</span>
+            <span className="text-[11px] font-medium text-foreground">{displayLikes}</span>
           </div>
 
           {/* Dislike */}
@@ -334,14 +315,14 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
               }}
               className={`flex items-center justify-center size-12 rounded-full transition-colors ${
                 disliked
-                  ? "bg-zinc-600 text-red-500"
-                  : "bg-zinc-800 hover:bg-zinc-700 text-white"
+                  ? "bg-muted text-red-500"
+                  : "bg-muted hover:bg-hover text-foreground"
               }`}
               aria-label="Dislike this short"
             >
               <ThumbsDown className="size-5" />
             </button>
-            <span className="text-[11px] font-medium text-zinc-300">Dislike</span>
+            <span className="text-[11px] font-medium text-foreground">Dislike</span>
           </div>
 
           {/* Comments */}
@@ -350,29 +331,29 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
               onClick={() => setShowComments(!showComments)}
               className={`flex items-center justify-center size-12 rounded-full transition-colors ${
                 showComments
-                  ? "bg-white text-zinc-950"
-                  : "bg-zinc-800 hover:bg-zinc-700 text-white"
+                  ? "bg-foreground text-background"
+                  : "bg-muted hover:bg-hover text-foreground"
               }`}
               aria-label="Toggle comments"
             >
               <MessageSquare className="size-5" />
             </button>
-            <span className="text-[11px] font-medium text-zinc-300">{commentsList.length}</span>
+            <span className="text-[11px] font-medium text-foreground">{commentsList.length}</span>
           </div>
 
           {/* Share */}
           <div className="flex flex-col items-center gap-1.5 relative">
             <button
               onClick={handleShare}
-              className="flex items-center justify-center size-12 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white transition-colors"
+              className="flex items-center justify-center size-12 rounded-full bg-muted hover:bg-hover text-foreground transition-colors"
               aria-label="Share short link"
             >
               <Share2 className="size-5" />
             </button>
-            <span className="text-[11px] font-medium text-zinc-300">Share</span>
+            <span className="text-[11px] font-medium text-foreground">Share</span>
             
             {copied && (
-              <div className="absolute bottom-14 bg-zinc-900 border border-zinc-700 text-xs px-2.5 py-1 rounded shadow-lg whitespace-nowrap animate-bounce text-green-400 font-semibold">
+              <div className="absolute bottom-14 bg-background border border-border text-foreground text-xs px-2.5 py-1 rounded shadow-lg whitespace-nowrap animate-bounce font-semibold">
                 Link Copied!
               </div>
             )}
@@ -383,14 +364,14 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
             <button
               onClick={() => prevShort && navigateTo(prevShort.slug)}
               disabled={!prevShort}
-              className={`flex items-center justify-center size-10 rounded-full bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed`}
+              className={`flex items-center justify-center size-10 rounded-full bg-muted text-foreground hover:bg-hover disabled:opacity-30 disabled:cursor-not-allowed`}
             >
               <ChevronUp className="size-5" />
             </button>
             <button
               onClick={() => nextShort && navigateTo(nextShort.slug)}
               disabled={!nextShort}
-              className={`flex items-center justify-center size-10 rounded-full bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed`}
+              className={`flex items-center justify-center size-10 rounded-full bg-muted text-foreground hover:bg-hover disabled:opacity-30 disabled:cursor-not-allowed`}
             >
               <ChevronDown className="size-5" />
             </button>
@@ -399,13 +380,13 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
 
         {/* Slide-out / Slide-in Comments Drawer Panel (Desktop & Mobile) */}
         {showComments && (
-          <div className="absolute md:relative z-20 top-0 bottom-0 right-0 w-full max-w-sm md:w-[320px] bg-zinc-900 border border-zinc-800 md:border-l-0 rounded-2xl md:rounded-r-2xl overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 text-zinc-100">
+          <div className="absolute md:relative z-20 top-0 bottom-0 right-0 w-full max-w-sm md:w-[320px] bg-background border border-border md:border-l-0 rounded-2xl md:rounded-r-2xl overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 text-foreground">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <h3 className="font-bold text-sm tracking-wide">Comments ({commentsList.length})</h3>
               <button
                 onClick={() => setShowComments(false)}
-                className="text-zinc-400 hover:text-white transition-colors p-1"
+                className="text-muted-foreground hover:text-foreground transition-colors p-1"
                 aria-label="Close comments"
               >
                 <X className="size-5" />
@@ -421,12 +402,12 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-semibold text-zinc-300">{c.author}</span>
-                      <span className="text-[10px] text-zinc-500">{c.timeAgo}</span>
+                      <span className="text-xs font-semibold text-foreground">{c.author}</span>
+                      <span className="text-[10px] text-muted-foreground">{c.timeAgo}</span>
                     </div>
-                    <p className="text-xs text-zinc-100 leading-relaxed">{c.text}</p>
+                    <p className="text-xs text-foreground leading-relaxed">{c.text}</p>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="flex items-center gap-1 text-[10px] text-zinc-400">
+                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                         <ThumbsUp className="size-3" />
                         {c.likes}
                       </span>
@@ -437,13 +418,13 @@ export function ShortsPlayer({ currentShort, allShorts }: ShortsPlayerProps) {
             </div>
 
             {/* Comment Form input */}
-            <form onSubmit={handleAddComment} className="p-3 border-t border-zinc-800 bg-zinc-900/90 flex gap-2">
+            <form onSubmit={handleAddComment} className="p-3 border-t border-border bg-background flex gap-2">
               <input
                 type="text"
                 placeholder="Add a comment..."
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
-                className="flex-1 bg-zinc-800 text-xs border border-zinc-700 rounded-full px-3 py-2 outline-none placeholder-zinc-500 focus:border-zinc-500"
+                className="flex-1 bg-muted text-foreground text-xs border border-border rounded-full px-3 py-2 outline-none placeholder:text-muted-foreground focus:border-foreground"
               />
               <button
                 type="submit"

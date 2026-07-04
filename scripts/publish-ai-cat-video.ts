@@ -1,5 +1,5 @@
 import { fal } from "@fal-ai/client";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc } from "drizzle-orm";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -96,6 +96,26 @@ function parseJsonOutput(raw: string): VideoPlan {
   return parsed as VideoPlan;
 }
 
+async function getRecentVideoTitles(): Promise<string[]> {
+  const recentVideos = await db
+    .select({ title: videos.title, publishedAt: videos.publishedAt })
+    .from(videos)
+    .orderBy(desc(videos.publishedAt))
+    .limit(25);
+
+  const recentShorts = await db
+    .select({ title: shorts.title, publishedAt: shorts.publishedAt })
+    .from(shorts)
+    .orderBy(desc(shorts.publishedAt))
+    .limit(25);
+
+  const combined = [...recentVideos, ...recentShorts]
+    .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
+    .slice(0, 25);
+
+  return combined.map((item) => item.title);
+}
+
 async function listChannels(): Promise<ChannelPick[]> {
   return db
     .select({
@@ -157,6 +177,7 @@ async function resolvePublishConfig(interactive: boolean): Promise<PublishConfig
 async function createVideoPlan(
   channelName: string,
   config: PublishConfig,
+  recentTitles: string[],
 ): Promise<VideoPlan> {
   const durationHint =
     config.duration === "auto"
@@ -177,7 +198,17 @@ async function createVideoPlan(
       prompt: `Channel: "${channelName}".
 Format: ${formatHint}.
 Creative direction: "${config.creativePrompt}".
+Recent video titles (DO NOT repeat these ideas):
+${recentTitles.length > 0 ? recentTitles.map((t) => `- ${t}`).join("\n") : "None"}
+
 Create a ${durationHint} piece featuring a cat. Match the tone, pacing, and framing for the chosen format.
+
+CRITICAL INSTRUCTION: You MUST radically vary the video genres and visual aesthetics. DO NOT just make standard cat videos. 
+Force a unique genre for this video (e.g., sci-fi, lifestyle vlog, detective drama, high-fantasy, cyberpunk, wild west, noir, horror, etc.).
+Force a unique visual style (e.g., cinematic, anime, 3d render, watercolor, claymation, retro VHS, etc.).
+Force a unique cat breed/type (e.g., calico, siamese, tuxedo, persian, sphynx, maine coon).
+Be extremely creative and wildly different from the recent titles.
+
 Return JSON: { "title": string, "description": string, "imagePrompt": string, "videoPrompt": string }`,
     },
   });
@@ -324,6 +355,8 @@ async function main() {
     config.duration = durationOverride;
   }
 
+  const recentTitles = await getRecentVideoTitles();
+
   for (let i = 0; i < count; i++) {
     if (count > 1) {
       console.log(`\n========================================`);
@@ -353,8 +386,13 @@ async function main() {
     }
 
     const plan = await runStep(interactive, "Generating video plan with LLM", () =>
-      createVideoPlan(channel.channelName, currentConfig),
+      createVideoPlan(channel.channelName, currentConfig, recentTitles),
     );
+
+    recentTitles.unshift(plan.title);
+    if (recentTitles.length > 25) {
+      recentTitles.pop();
+    }
 
     if (interactive) {
       logStepSuccess(`Plan: "${plan.title}"`);

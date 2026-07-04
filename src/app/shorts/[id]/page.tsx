@@ -31,11 +31,11 @@ export default async function WatchShortPage({ params }: ShortsPageProps) {
   if (!currentShort) notFound();
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#0f0f0f]">
+    <div className="flex min-h-screen flex-col bg-background text-foreground relative">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 flex flex-col justify-center items-center bg-zinc-950">
+        <main className="flex-1 flex flex-col justify-center items-center bg-background">
           <ShortsPlayer currentShort={currentShort} allShorts={allShorts} />
         </main>
       </div>

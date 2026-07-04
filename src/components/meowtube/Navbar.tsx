@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, FormEvent, useEffect } from "react";
-import { BellDot, Cat, CircleX, Menu, Mic, Search } from "lucide-react";
+import { Cat, Menu, Search } from "lucide-react";
 
 import { UserMenu } from "@/components/auth/UserMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavbarProps {
   searchQuery?: string;
@@ -14,11 +15,27 @@ interface NavbarProps {
 export function Navbar({ searchQuery }: NavbarProps) {
   const router = useRouter();
   const [query, setQuery] = useState(searchQuery ?? "");
+  const [scrollOpacity, setScrollOpacity] = useState(0);
 
   // Sync state if searchQuery prop changes (e.g. back/forward navigation or URL change)
   useEffect(() => {
     setQuery(searchQuery ?? "");
   }, [searchQuery]);
+
+  // Handle scroll opacity
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      // Fade in over the first 30px of scroll
+      const opacity = Math.min(1, scrollY / 30);
+      setScrollOpacity(opacity);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // initialize
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -30,58 +47,55 @@ export function Navbar({ searchQuery }: NavbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-[#f2f2f2] bg-white px-4">
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-          aria-label="Open menu"
-          className="flex size-6 items-center justify-center text-[#0f0f0f]"
-        >
-          <Menu className="size-6" />
-        </button>
-        <Link href="/" className="flex items-center gap-1">
-          <span className="flex items-start rounded-lg bg-red-600 p-1">
-            <Cat className="size-5 text-white" />
-          </span>
-          <span className="text-xl font-bold text-black">MeowTube</span>
-        </Link>
-      </div>
-
-      <form onSubmit={handleSearch} className="flex w-full max-w-[600px] items-center gap-2">
-        <div className="flex h-10 flex-1 items-center rounded-l-full border border-[#e5e5e5] pl-4 pr-2">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search cats..."
-            className="w-full bg-transparent text-base text-[#0f0f0f] outline-none placeholder:text-[#606060]"
-          />
+    <>
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between bg-background px-4">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            aria-label="Open menu"
+            className="flex size-6 items-center justify-center text-foreground"
+          >
+            <Menu className="size-6" />
+          </button>
+          <Link href="/" className="flex items-center gap-1 pr-4">
+            <span className="flex items-start rounded-lg bg-red-600 p-1">
+              <Cat className="size-5 text-white" />
+            </span>
+            <span className="text-xl font-bold text-foreground">MeowTube</span>
+          </Link>
         </div>
-        <button
-          type="submit"
-          aria-label="Search"
-          className="flex h-10 w-16 items-center justify-center rounded-r-full border border-l-0 border-[#e5e5e5] bg-[#f8f8f8] text-[#0f0f0f] transition-colors hover:bg-[#f0f0f0]"
-        >
-          <Search className="size-5" />
-        </button>
-        <button
-          type="button"
-          aria-label="Search with your voice"
-          className="flex size-10 items-center justify-center rounded-full bg-[#f8f8f8] text-[#0f0f0f] transition-colors hover:bg-[#f0f0f0]"
-        >
-          <Mic className="size-5" />
-        </button>
-      </form>
 
-      <div className="flex items-center gap-5">
-        <button type="button" aria-label="Close" className="flex size-6 items-center justify-center text-[#0f0f0f]">
-          <CircleX className="size-6" />
-        </button>
-        <button type="button" aria-label="Notifications" className="flex size-6 items-center justify-center text-[#0f0f0f]">
-          <BellDot className="size-6" />
-        </button>
-        <UserMenu />
-      </div>
-    </header>
+        <form onSubmit={handleSearch} className="flex w-full max-w-[600px] items-center gap-4">
+          <div className="flex flex-1 items-center">
+            <div className="flex h-10 flex-1 items-center rounded-l-full border border-border pl-4 pr-2">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search cats..."
+                className="w-full bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+            <button
+              type="submit"
+              aria-label="Search"
+              className="flex h-10 w-16 items-center justify-center rounded-r-full border border-l-0 border-border bg-muted text-foreground transition-colors hover:bg-hover"
+            >
+              <Search className="size-5" />
+            </button>
+          </div>
+        </form>
+
+        <div className="flex items-center gap-5">
+          <ThemeToggle />
+          <UserMenu />
+        </div>
+      </header>
+      {/* Scroll gradient shadow that appears under the header */}
+      <div
+        className="fixed top-14 left-0 right-0 z-40 h-4 bg-gradient-to-b from-black/10 dark:from-black/40 to-transparent pointer-events-none transition-opacity duration-75"
+        style={{ opacity: scrollOpacity }}
+      />
+    </>
   );
 }

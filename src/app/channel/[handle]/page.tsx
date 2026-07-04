@@ -34,7 +34,7 @@ export default async function ChannelPage({ params }: ChannelPageProps) {
   const secondRow = channel.videos.slice(4, 8);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#0f0f0f]">
+    <div className="flex min-h-screen flex-col bg-background text-foreground relative">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
