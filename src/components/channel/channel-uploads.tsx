@@ -1,35 +1,41 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Play } from "lucide-react";
-import { featuredVideo, uploads } from "@/lib/channel-data";
+import type { Video } from "@/db/schema";
+import {
+  formatDuration,
+  formatViews,
+  formatWatching,
+  timeAgo,
+} from "@/lib/format";
 
-export function FeaturedVideo() {
+export function FeaturedVideo({ video }: { video: Video }) {
   return (
     <div className="flex w-full items-start gap-6">
       <Link
-        href="/watch"
+        href={`/watch?v=${video.id}`}
         className="relative h-[238px] w-[424px] shrink-0 overflow-hidden rounded-xl"
       >
         <Image
-          src={featuredVideo.thumbnail}
-          alt={featuredVideo.title}
+          src={video.thumbnailUrl ?? "/images/avatar-user.png"}
+          alt={video.title}
           fill
           sizes="424px"
           className="object-cover"
         />
         <span className="absolute right-2 bottom-2 rounded-sm bg-black/80 px-1 py-0.5 text-xs font-semibold text-white">
-          {featuredVideo.duration}
+          {formatDuration(video.durationSeconds ?? 0)}
         </span>
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <Link href="/watch">
-          <h2 className="text-xl font-bold text-foreground">
-            {featuredVideo.title}
-          </h2>
+        <Link href={`/watch?v=${video.id}`}>
+          <h2 className="text-xl font-bold text-foreground">{video.title}</h2>
         </Link>
-        <p className="text-sm text-muted">{featuredVideo.meta}</p>
+        <p className="text-sm text-muted">
+          {formatViews(video.viewCount)} · {timeAgo(video.publishedAt)}
+        </p>
         <div className="text-sm leading-normal text-muted">
-          <p>{featuredVideo.description}</p>
+          <p>{video.description}</p>
           <p>...more</p>
         </div>
       </div>
@@ -37,13 +43,19 @@ export function FeaturedVideo() {
   );
 }
 
-export function ChannelUploads() {
+export function ChannelUploads({
+  uploads,
+  channelName,
+}: {
+  uploads: Video[];
+  channelName: string;
+}) {
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex items-center gap-2">
         <h2 className="text-xl font-bold text-foreground">Uploads</h2>
         <button className="flex items-center gap-2">
-          <Play className="size-5 fill-black text-foreground" />
+          <Play className="size-5 fill-foreground text-foreground" />
           <span className="text-xs font-semibold text-foreground">Play all</span>
         </button>
       </div>
@@ -51,19 +63,21 @@ export function ChannelUploads() {
         {uploads.map((video) => (
           <Link
             key={video.id}
-            href="/watch"
+            href={`/watch?v=${video.id}`}
             className="flex min-w-0 flex-1 flex-col gap-3"
           >
             <div className="relative aspect-video w-full overflow-hidden rounded-xl">
               <Image
-                src={video.thumbnail}
+                src={video.thumbnailUrl ?? "/images/avatar-user.png"}
                 alt={video.title}
                 fill
                 sizes="(min-width: 1280px) 16vw, 33vw"
                 className="object-cover"
               />
               <span className="absolute right-2 bottom-2 rounded-sm bg-black/80 px-1 py-0.5 text-xs font-semibold text-white">
-                {video.isLive ? "LIVE" : video.duration}
+                {video.type === "live"
+                  ? "LIVE"
+                  : formatDuration(video.durationSeconds ?? 0)}
               </span>
             </div>
             <div className="flex flex-col gap-1">
@@ -71,8 +85,12 @@ export function ChannelUploads() {
                 {video.title}
               </h3>
               <div className="flex flex-col text-sm text-muted">
-                <p>The Daily Purr</p>
-                <p>{video.meta}</p>
+                <p>{channelName}</p>
+                <p>
+                  {video.type === "live"
+                    ? `${formatWatching(video.viewCount)} · LIVE`
+                    : `${formatViews(video.viewCount)} · ${timeAgo(video.publishedAt)}`}
+                </p>
               </div>
             </div>
           </Link>

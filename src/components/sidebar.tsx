@@ -12,7 +12,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import { subscriptions } from "@/lib/data";
+import type { SidebarChannel } from "@/lib/queries";
 
 const mainNav: { label: string; icon: LucideIcon; href: string }[] = [
   { label: "Home", icon: House, href: "/" },
@@ -59,7 +59,13 @@ function NavItem({
   );
 }
 
-export function Sidebar({ activeItem = "Home" }: { activeItem?: string }) {
+export function Sidebar({
+  subscriptions,
+  activeItem = "Home",
+}: {
+  subscriptions: SidebarChannel[];
+  activeItem?: string;
+}) {
   return (
     <aside className="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto px-3 pt-3">
       <nav className="flex w-full flex-col gap-1">
@@ -92,7 +98,7 @@ export function Sidebar({ activeItem = "Home" }: { activeItem?: string }) {
           >
             <div className="relative size-6 shrink-0 overflow-hidden rounded-full">
               <Image
-                src={sub.avatar}
+                src={sub.avatarUrl ?? "/images/avatar-user.png"}
                 alt={sub.name}
                 fill
                 sizes="24px"

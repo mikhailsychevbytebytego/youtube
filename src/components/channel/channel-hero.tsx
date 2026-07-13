@@ -1,14 +1,24 @@
 import Image from "next/image";
 import { ChevronRight, PawPrint, Search } from "lucide-react";
-import { channel, channelTabs } from "@/lib/channel-data";
+import type { Channel } from "@/db/schema";
+import { formatCount } from "@/lib/format";
 
-export function ChannelHero() {
+const channelTabs = [
+  "Home",
+  "Videos",
+  "Shorts",
+  "Live",
+  "Playlists",
+  "Community",
+];
+
+export function ChannelHero({ channel }: { channel: Channel }) {
   return (
     <>
       <div className="h-[200px] w-full p-6">
         <div className="relative h-full w-full overflow-hidden rounded-xl">
           <Image
-            src={channel.banner}
+            src={channel.bannerUrl ?? "/images/channel-banner.png"}
             alt={`${channel.name} banner`}
             fill
             sizes="(min-width: 1280px) 80vw, 100vw"
@@ -23,7 +33,7 @@ export function ChannelHero() {
           <div className="relative size-40 shrink-0">
             <div className="relative size-full overflow-hidden rounded-full">
               <Image
-                src={channel.avatar}
+                src={channel.avatarUrl ?? "/images/avatar-user.png"}
                 alt={channel.name}
                 fill
                 sizes="160px"
@@ -39,7 +49,10 @@ export function ChannelHero() {
               <h1 className="text-4xl font-bold text-foreground">
                 {channel.name}
               </h1>
-              <p className="text-sm text-muted">{channel.handle}</p>
+              <p className="text-sm text-muted">
+                {channel.handle} · {formatCount(channel.subscriberCount)}{" "}
+                subscribers
+              </p>
             </div>
             <button className="flex items-center gap-1 self-start">
               <span className="text-sm text-muted">

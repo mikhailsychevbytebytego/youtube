@@ -9,14 +9,15 @@ import {
   TvMinimalPlay,
   Volume2,
 } from "lucide-react";
-import { watchVideo } from "@/lib/watch-data";
+import type { Video } from "@/db/schema";
+import { formatDuration } from "@/lib/format";
 
-export function VideoPlayer() {
+export function VideoPlayer({ video }: { video: Video }) {
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#0f0f0f]">
       <Image
-        src={watchVideo.poster}
-        alt={watchVideo.title}
+        src={video.thumbnailUrl ?? "/images/avatar-user.png"}
+        alt={video.title}
         fill
         sizes="(min-width: 1280px) 60vw, 100vw"
         className="object-cover"
@@ -33,7 +34,7 @@ export function VideoPlayer() {
               <ArrowRight className="size-[18px] text-white" />
               <Volume2 className="size-[18px] text-white" />
               <span className="text-[13px] text-white">
-                {watchVideo.currentTime} / {watchVideo.totalTime}
+                0:05 / {formatDuration(video.durationSeconds ?? 0)}
               </span>
             </div>
             <div className="flex items-center gap-5">

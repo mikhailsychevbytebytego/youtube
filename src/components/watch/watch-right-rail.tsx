@@ -1,14 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, CircleX, PawPrint } from "lucide-react";
+import type { Video } from "@/db/schema";
+import type { VideoWithChannel } from "@/lib/queries";
 import {
-  catShorts,
-  kittenShorts,
-  upNextVideos,
-  type MiniShort,
-} from "@/lib/watch-data";
+  formatDuration,
+  formatViews,
+  formatWatching,
+  timeAgo,
+} from "@/lib/format";
 
-function UpNextList() {
+function UpNextList({ videos }: { videos: VideoWithChannel[] }) {
   return (
     <div className="flex w-full flex-col gap-3">
       <div className="flex w-full items-center justify-between">
@@ -20,27 +22,27 @@ function UpNextList() {
           </span>
         </div>
       </div>
-      {upNextVideos.map((video) => (
+      {videos.map((video) => (
         <Link
           key={video.id}
-          href="/watch"
+          href={`/watch?v=${video.id}`}
           className="flex w-full items-start gap-2"
         >
           <div className="relative h-[94px] w-[168px] shrink-0 overflow-hidden rounded-lg">
             <Image
-              src={video.thumbnail}
+              src={video.thumbnailUrl ?? "/images/avatar-user.png"}
               alt={video.title}
               fill
               sizes="168px"
               className="object-cover"
             />
-            {video.isLive ? (
+            {video.type === "live" ? (
               <span className="absolute right-1 bottom-1 rounded-xs bg-[#ff0000] px-1 py-0.5 text-xs font-bold text-white">
                 LIVE
               </span>
             ) : (
               <span className="absolute right-1 bottom-1 rounded-sm bg-black/80 px-1 py-0.5 text-xs font-medium text-white">
-                {video.duration}
+                {formatDuration(video.durationSeconds ?? 0)}
               </span>
             )}
           </div>
@@ -49,8 +51,12 @@ function UpNextList() {
               {video.title}
             </h3>
             <div className="flex flex-col gap-0.5 text-xs text-muted">
-              <p>{video.channel}</p>
-              <p>{video.meta}</p>
+              <p>{video.channel.name}</p>
+              <p>
+                {video.type === "live"
+                  ? formatWatching(video.viewCount)
+                  : `${formatViews(video.viewCount)} • ${timeAgo(video.publishedAt)}`}
+              </p>
             </div>
           </div>
         </Link>
@@ -68,7 +74,7 @@ function ShortsShelf({
 }: {
   title: string;
   icon: React.ReactNode;
-  shorts: MiniShort[];
+  shorts: Video[];
   height: number;
   showScrollButton?: boolean;
 }) {
@@ -85,25 +91,24 @@ function ShortsShelf({
       </div>
       <div className="relative flex w-full gap-3">
         {shorts.map((short) => (
-          <Link
+          <div
             key={short.id}
-            href="/watch"
             className="relative w-[120px] shrink-0 overflow-hidden rounded-lg"
             style={{ height }}
           >
             <Image
-              src={short.thumbnail}
-              alt=""
+              src={short.thumbnailUrl ?? "/images/avatar-user.png"}
+              alt={short.title}
               fill
               sizes="120px"
               className="object-cover"
             />
-            {short.duration && (
+            {short.durationSeconds != null && (
               <span className="absolute right-1 bottom-1 rounded-sm bg-black/80 px-1 py-0.5 text-[10px] text-white">
-                {short.duration}
+                {formatDuration(short.durationSeconds)}
               </span>
             )}
-          </Link>
+          </div>
         ))}
         {showScrollButton && (
           <button
@@ -118,10 +123,18 @@ function ShortsShelf({
   );
 }
 
-export function WatchRightRail() {
+export function WatchRightRail({
+  upNext,
+  kittenShorts,
+  catShorts,
+}: {
+  upNext: VideoWithChannel[];
+  kittenShorts: Video[];
+  catShorts: Video[];
+}) {
   return (
     <aside className="flex w-[402px] shrink-0 flex-col gap-6 pt-6 pr-6">
-      <UpNextList />
+      <UpNextList videos={upNext} />
       <ShortsShelf
         title="Kittens"
         icon={<PawPrint className="size-4 text-foreground" />}

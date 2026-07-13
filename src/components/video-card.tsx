@@ -1,16 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Video } from "@/lib/data";
+import type { VideoWithChannel } from "@/lib/queries";
+import { formatViews, timeAgo } from "@/lib/format";
 
-export function VideoCard({ video }: { video: Video }) {
+export function VideoCard({ video }: { video: VideoWithChannel }) {
   return (
     <div className="flex flex-col gap-3">
       <Link
-        href="/watch"
+        href={`/watch?v=${video.id}`}
         className="relative aspect-video w-full overflow-hidden rounded-xl"
       >
         <Image
-          src={video.thumbnail}
+          src={video.thumbnailUrl ?? "/images/avatar-user.png"}
           alt={video.title}
           fill
           sizes="(min-width: 1280px) 25vw, 50vw"
@@ -23,25 +24,25 @@ export function VideoCard({ video }: { video: Video }) {
           className="relative size-9 shrink-0 overflow-hidden rounded-full"
         >
           <Image
-            src={video.channelAvatar}
-            alt={video.channel}
+            src={video.channel.avatarUrl ?? "/images/avatar-user.png"}
+            alt={video.channel.name}
             fill
             sizes="36px"
             className="object-cover"
           />
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <Link href="/watch">
+          <Link href={`/watch?v=${video.id}`}>
             <h3 className="line-clamp-2 text-base font-semibold text-foreground">
               {video.title}
             </h3>
           </Link>
           <div className="flex flex-col gap-0.5 text-sm text-muted">
             <Link href="/channel" className="hover:text-foreground">
-              {video.channel}
+              {video.channel.name}
             </Link>
             <p>
-              {video.views} • {video.age}
+              {formatViews(video.viewCount)} • {timeAgo(video.publishedAt)}
             </p>
           </div>
         </div>

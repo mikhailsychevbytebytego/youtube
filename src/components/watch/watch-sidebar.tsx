@@ -12,41 +12,34 @@ import {
   ThumbsUp,
   type LucideIcon,
 } from "lucide-react";
-import { watchSubscriptions } from "@/lib/watch-data";
+import type { SidebarChannel } from "@/lib/queries";
 
-const mainNav: {
-  label: string;
-  icon: LucideIcon;
-  href: string;
-  active?: boolean;
-}[] = [
-  { label: "Home", icon: House, href: "/", active: true },
-  { label: "PawFeed", icon: PawPrint, href: "#" },
-  { label: "Subscriptions", icon: Subscript, href: "#" },
+const mainNav: { label: string; icon: LucideIcon; active?: boolean }[] = [
+  { label: "Home", icon: House, active: true },
+  { label: "PawFeed", icon: PawPrint },
+  { label: "Subscriptions", icon: Subscript },
 ];
 
-const libraryNav: { label: string; icon: LucideIcon; href: string }[] = [
-  { label: "Library", icon: Library, href: "#" },
-  { label: "History", icon: History, href: "#" },
-  { label: "Your videos", icon: SquarePlay, href: "#" },
-  { label: "Watch later", icon: Clock, href: "#" },
-  { label: "Liked videos", icon: ThumbsUp, href: "#" },
+const libraryNav: { label: string; icon: LucideIcon }[] = [
+  { label: "Library", icon: Library },
+  { label: "History", icon: History },
+  { label: "Your videos", icon: SquarePlay },
+  { label: "Watch later", icon: Clock },
+  { label: "Liked videos", icon: ThumbsUp },
 ];
 
 function NavItem({
   label,
   icon: Icon,
-  href,
   active,
 }: {
   label: string;
   icon: LucideIcon;
-  href: string;
   active?: boolean;
 }) {
   return (
     <Link
-      href={href}
+      href={label === "Home" ? "/" : "#"}
       className={`flex w-full items-center gap-6 rounded-[10px] px-3 py-2.5 ${
         active ? "bg-surface" : ""
       }`}
@@ -65,7 +58,11 @@ function NavItem({
   );
 }
 
-export function WatchSidebar() {
+export function WatchSidebar({
+  subscriptions,
+}: {
+  subscriptions: SidebarChannel[];
+}) {
   return (
     <aside className="flex w-60 shrink-0 flex-col gap-1 px-3 pt-3">
       {mainNav.map((item) => (
@@ -78,7 +75,7 @@ export function WatchSidebar() {
       <div className="w-full border-t border-border" />
       <div className="flex w-full flex-col gap-2 pt-3 pl-3">
         <h3 className="text-sm font-semibold text-foreground">Subscriptions</h3>
-        {watchSubscriptions.map((sub) => (
+        {subscriptions.map((sub) => (
           <Link
             key={sub.id}
             href="/channel"
@@ -86,7 +83,7 @@ export function WatchSidebar() {
           >
             <div className="relative size-6 shrink-0 overflow-hidden rounded-full">
               <Image
-                src={sub.avatar}
+                src={sub.avatarUrl ?? "/images/avatar-user.png"}
                 alt={sub.name}
                 fill
                 sizes="24px"

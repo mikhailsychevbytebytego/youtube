@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import {
   Cat,
   ChevronDown,
@@ -16,48 +15,41 @@ import {
   Video,
   type LucideIcon,
 } from "lucide-react";
-import { channelSubscriptions } from "@/lib/channel-data";
+import type { SidebarChannel } from "@/lib/queries";
 
-const mainNav: {
-  label: string;
-  icon: LucideIcon;
-  href: string;
-  active?: boolean;
-}[] = [
-  { label: "Home", icon: House, href: "/", active: true },
-  { label: "PawFeed", icon: PawPrint, href: "#" },
-  { label: "Subscriptions", icon: Users, href: "#" },
+const mainNav: { label: string; icon: LucideIcon; active?: boolean }[] = [
+  { label: "Home", icon: House, active: true },
+  { label: "PawFeed", icon: PawPrint },
+  { label: "Subscriptions", icon: Users },
 ];
 
-const libraryNav: { label: string; icon: LucideIcon; href: string }[] = [
-  { label: "Library", icon: Library, href: "#" },
-  { label: "History", icon: History, href: "#" },
-  { label: "Your videos", icon: Video, href: "#" },
-  { label: "Watch later", icon: Clock, href: "#" },
-  { label: "Liked videos", icon: ThumbsUp, href: "#" },
+const libraryNav: { label: string; icon: LucideIcon }[] = [
+  { label: "Library", icon: Library },
+  { label: "History", icon: History },
+  { label: "Your videos", icon: Video },
+  { label: "Watch later", icon: Clock },
+  { label: "Liked videos", icon: ThumbsUp },
 ];
 
-const exploreNav: { label: string; icon: LucideIcon; href: string }[] = [
-  { label: "Trending", icon: FireExtinguisher, href: "#" },
-  { label: "Music", icon: Music, href: "#" },
-  { label: "Gaming", icon: Gamepad2, href: "#" },
-  { label: "Meow & Chill", icon: Cat, href: "#" },
+const exploreNav: { label: string; icon: LucideIcon }[] = [
+  { label: "Trending", icon: FireExtinguisher },
+  { label: "Music", icon: Music },
+  { label: "Gaming", icon: Gamepad2 },
+  { label: "Meow & Chill", icon: Cat },
 ];
 
 function NavItem({
   label,
   icon: Icon,
-  href,
   active,
 }: {
   label: string;
   icon: LucideIcon;
-  href: string;
   active?: boolean;
 }) {
   return (
-    <Link
-      href={href}
+    <a
+      href="#"
       className={`flex w-full items-center gap-5 rounded-[10px] px-3 py-2.5 ${
         active ? "bg-surface" : ""
       }`}
@@ -72,11 +64,15 @@ function NavItem({
       >
         {label}
       </span>
-    </Link>
+    </a>
   );
 }
 
-export function ChannelSidebar() {
+export function ChannelSidebar({
+  subscriptions,
+}: {
+  subscriptions: SidebarChannel[];
+}) {
   return (
     <aside className="flex w-60 shrink-0 flex-col gap-3 px-3 pt-3">
       <nav className="flex w-full flex-col gap-1">
@@ -93,15 +89,15 @@ export function ChannelSidebar() {
       <div className="w-full border-t border-border" />
       <div className="flex w-full flex-col gap-2">
         <h3 className="px-3 text-xs font-bold text-foreground">Subscriptions</h3>
-        {channelSubscriptions.map((sub) => (
-          <Link
+        {subscriptions.map((sub) => (
+          <a
             key={sub.id}
-            href="/channel"
+            href="#"
             className="flex w-full items-center gap-4 rounded-[10px] px-3 py-2"
           >
             <div className="relative size-6 shrink-0 overflow-hidden rounded-full">
               <Image
-                src={sub.avatar}
+                src={sub.avatarUrl ?? "/images/avatar-user.png"}
                 alt={sub.name}
                 fill
                 sizes="24px"
@@ -114,7 +110,7 @@ export function ChannelSidebar() {
             {sub.hasNew && (
               <span className="size-1 shrink-0 rounded-full bg-[#ff0000]" />
             )}
-          </Link>
+          </a>
         ))}
         <button className="flex items-center gap-3 pl-3">
           <ChevronDown className="size-5 text-foreground" />

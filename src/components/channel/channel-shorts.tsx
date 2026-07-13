@@ -1,9 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 import { ChevronRight, Shirt } from "lucide-react";
-import { channelShorts } from "@/lib/channel-data";
+import type { Video } from "@/db/schema";
+import { formatViews } from "@/lib/format";
 
-export function ChannelShorts() {
+export function ChannelShorts({ shorts }: { shorts: Video[] }) {
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex items-center gap-3">
@@ -11,15 +11,11 @@ export function ChannelShorts() {
         <h2 className="text-xl font-bold text-foreground">Cat Shorts</h2>
       </div>
       <div className="relative flex w-full items-start gap-4">
-        {channelShorts.map((short) => (
-          <Link
-            key={short.id}
-            href="/watch"
-            className="flex min-w-0 flex-1 flex-col gap-2"
-          >
+        {shorts.map((short) => (
+          <div key={short.id} className="flex min-w-0 flex-1 flex-col gap-2">
             <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl">
               <Image
-                src={short.thumbnail}
+                src={short.thumbnailUrl ?? "/images/avatar-user.png"}
                 alt={short.title}
                 fill
                 sizes="(min-width: 1280px) 13vw, 33vw"
@@ -30,9 +26,11 @@ export function ChannelShorts() {
               <h3 className="truncate text-sm font-semibold text-foreground">
                 {short.title}
               </h3>
-              <p className="text-[13px] text-muted">{short.views}</p>
+              <p className="text-[13px] text-muted">
+                {formatViews(short.viewCount)}
+              </p>
             </div>
-          </Link>
+          </div>
         ))}
         <button
           aria-label="Scroll shorts"

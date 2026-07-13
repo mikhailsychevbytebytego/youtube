@@ -6,7 +6,8 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
-import type { Short } from "@/lib/data";
+import type { VideoWithChannel } from "@/lib/queries";
+import { formatCount, formatViews } from "@/lib/format";
 
 function ActionButton({
   label,
@@ -32,12 +33,12 @@ function ActionButton({
   );
 }
 
-export function ShortItem({ short }: { short: Short }) {
+export function ShortItem({ short }: { short: VideoWithChannel }) {
   return (
     <section className="flex h-full w-full snap-start snap-always items-center justify-center gap-4 py-3">
       <div className="relative flex aspect-[9/16] h-full items-end overflow-hidden rounded-xl bg-[#0f0f0f]">
         <Image
-          src={short.thumbnail}
+          src={short.thumbnailUrl ?? "/images/avatar-user.png"}
           alt={short.title}
           fill
           sizes="405px"
@@ -49,33 +50,33 @@ export function ShortItem({ short }: { short: Short }) {
           <div className="flex items-center gap-2">
             <div className="relative size-8 shrink-0 overflow-hidden rounded-full">
               <Image
-                src={short.channelAvatar}
-                alt={short.channel}
+                src={short.channel.avatarUrl ?? "/images/avatar-user.png"}
+                alt={short.channel.name}
                 fill
                 sizes="32px"
                 className="object-cover"
               />
             </div>
             <span className="text-sm font-semibold text-white">
-              {short.channel}
+              {short.channel.name}
             </span>
             <button className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
               Purrscribe
             </button>
           </div>
           <h2 className="text-sm font-medium text-white">{short.title}</h2>
-          <p className="text-xs text-white/70">{short.views}</p>
+          <p className="text-xs text-white/70">{formatViews(short.viewCount)}</p>
         </div>
       </div>
 
       <div className="flex h-full flex-col justify-end gap-4 pb-2">
-        <ActionButton label="Like" count={short.likes}>
+        <ActionButton label="Like" count={formatCount(short.likeCount)}>
           <ThumbsUp className="size-5 text-foreground" />
         </ActionButton>
         <ActionButton label="Dislike">
           <ThumbsDown className="size-5 text-foreground" />
         </ActionButton>
-        <ActionButton label="Comments" count={short.comments}>
+        <ActionButton label="Comments">
           <MessageCircle className="size-5 text-foreground" />
         </ActionButton>
         <ActionButton label="Share">

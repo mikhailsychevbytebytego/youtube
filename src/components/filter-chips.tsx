@@ -1,4 +1,12 @@
-import { filterChips } from "@/lib/data";
+const filterChips = [
+  "All",
+  "Cat Shows",
+  "Shorts",
+  "Live",
+  "Cat Watching",
+  "Saved",
+  "New to you",
+];
 
 export function FilterChips() {
   return (
