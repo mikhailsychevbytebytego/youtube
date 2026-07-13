@@ -1,7 +1,11 @@
 import Image from "next/image";
 import { Bell, Menu, Mic, Play, Plus, Search } from "lucide-react";
 
-export function WatchHeader() {
+export function WatchHeader({
+  searchPlaceholder = "Search cats...",
+}: {
+  searchPlaceholder?: string;
+}) {
   return (
     <header className="flex h-14 w-full shrink-0 items-center justify-between px-6">
       <div className="flex items-center gap-6">
@@ -23,7 +27,7 @@ export function WatchHeader() {
         <div className="flex h-10 flex-1 items-center overflow-hidden rounded-full border border-[#e5e5e5]">
           <input
             type="text"
-            placeholder="Search cats..."
+            placeholder={searchPlaceholder}
             className="h-full min-w-0 flex-1 pl-4 text-base text-[#0f0f0f] outline-none placeholder:text-[#606060]"
           />
           <button
