@@ -81,6 +81,8 @@ export const videos = pgTable(
       .references(() => channels.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     description: text("description"),
+    // Production script used to generate the video (mock/AI-generated entries)
+    script: text("script"),
     type: videoType("type").notNull().default("video"),
     thumbnailUrl: text("thumbnail_url"),
     // Cloudflare Stream video UID; null until the upload is processed
