@@ -1,15 +1,22 @@
 import "dotenv/config";
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./index";
 import { channels, users } from "./schema";
 
 const FAL_ENDPOINT = "https://fal.run/openrouter/router";
+const FAL_IMAGE_ENDPOINT =
+  "https://fal.run/bytedance/seedream/v5/lite/text-to-image";
 const MODEL = "google/gemini-3.5-flash";
 const DEFAULT_COUNT = 5;
+const IMAGES_DIR = path.join(process.cwd(), "public", "images");
 
 const mockUserSchema = z.object({
   name: z.string().min(1),
   email: z.email(),
+  avatarPrompt: z.string().min(1),
   channel: z.object({
     name: z.string().min(1),
     handle: z.string().regex(/^@[a-z0-9_.]{3,30}$/),
@@ -19,6 +26,10 @@ const mockUserSchema = z.object({
 });
 
 const mockUsersSchema = z.array(mockUserSchema);
+
+const imageResultSchema = z.object({
+  images: z.array(z.object({ url: z.url() })).min(1),
+});
 
 type MockUser = z.infer<typeof mockUserSchema>;
 
@@ -35,6 +46,7 @@ function buildPrompt(
     "{",
     '  "name": "Willow Nightpaw",',
     '  "email": "willow@mewtube.test",',
+    '  "avatarPrompt": "Portrait of a sleek black cat with glowing amber eyes against a moonlit purple background, playful digital art style, square profile picture.",',
     '  "channel": {',
     '    "name": "Midnight Zoomies",',
     '    "handle": "@midnightzoomies",',
@@ -48,6 +60,7 @@ function buildPrompt(
     "- handle must start with @ followed by 3-30 lowercase letters, digits, underscores, or dots",
     "- subscriberCount is an integer between 100 and 10000000",
     "- descriptions are one short sentence",
+    "- avatarPrompt is a one-to-two sentence text-to-image prompt for the user's cat avatar (style, colors, personality matching the channel theme), suitable for a square profile picture",
     takenEmails.length > 0
       ? `- do NOT use any of these emails: ${takenEmails.join(", ")}`
       : "",
@@ -65,11 +78,61 @@ function stripCodeFences(text: string): string {
   return match ? match[1] : trimmed;
 }
 
-async function generateMockUsers(count: number): Promise<MockUser[]> {
+function getFalKey(): string {
   const falKey = process.env.FAL_KEY;
   if (!falKey) {
     throw new Error("FAL_KEY is not set");
   }
+  return falKey;
+}
+
+/** Generates a 1:1 avatar with Seedream and returns the image bytes. */
+async function generateAvatar(prompt: string): Promise<Buffer> {
+  const response = await fetch(FAL_IMAGE_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Authorization: `Key ${getFalKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prompt,
+      // Seedream requires at least ~3.7MP total; 2048x2048 is the 1:1 fit.
+      image_size: { width: 2048, height: 2048 },
+      num_images: 1,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Seedream request failed (${response.status}): ${body}`);
+  }
+
+  const result = imageResultSchema.safeParse(await response.json());
+  if (!result.success) {
+    throw new Error(
+      `Seedream response did not match the expected schema: ${z.prettifyError(result.error)}`,
+    );
+  }
+
+  const imageUrl = result.data.images[0].url;
+  const imageResponse = await fetch(imageUrl);
+  if (!imageResponse.ok) {
+    throw new Error(
+      `Failed to download avatar image (${imageResponse.status}) from ${imageUrl}`,
+    );
+  }
+  return Buffer.from(await imageResponse.arrayBuffer());
+}
+
+/** Saves avatar bytes under public/images and returns the public path. */
+async function saveAvatar(handle: string, image: Buffer): Promise<string> {
+  const fileName = `mock-avatar-${handle.replace(/^@/, "")}.png`;
+  await writeFile(path.join(IMAGES_DIR, fileName), image);
+  return `/images/${fileName}`;
+}
+
+async function generateMockUsers(count: number): Promise<MockUser[]> {
+  const falKey = getFalKey();
 
   const [existingUsers, existingChannels] = await Promise.all([
     db.select({ email: users.email }).from(users),
@@ -138,6 +201,7 @@ async function generateMockUsers(count: number): Promise<MockUser[]> {
 async function insertMockUsers(mockUsers: MockUser[]): Promise<void> {
   let insertedUsers = 0;
   let insertedChannels = 0;
+  let generatedAvatars = 0;
 
   for (const mockUser of mockUsers) {
     const [user] = await db
@@ -152,6 +216,23 @@ async function insertMockUsers(mockUsers: MockUser[]): Promise<void> {
     }
     insertedUsers++;
 
+    // Generate the avatar only after the user row landed, so duplicates
+    // don't cost an image generation.
+    let avatarUrl: string | null = null;
+    try {
+      console.log(`Generating avatar for ${mockUser.channel.handle}...`);
+      const image = await generateAvatar(mockUser.avatarPrompt);
+      avatarUrl = await saveAvatar(mockUser.channel.handle, image);
+      await db.update(users).set({ avatarUrl }).where(eq(users.id, user.id));
+      generatedAvatars++;
+      console.log(`Saved avatar to ${avatarUrl}`);
+    } catch (error) {
+      console.warn(
+        `Avatar generation failed for ${mockUser.channel.handle}, continuing without one:`,
+        error,
+      );
+    }
+
     const [channel] = await db
       .insert(channels)
       .values({
@@ -159,6 +240,7 @@ async function insertMockUsers(mockUsers: MockUser[]): Promise<void> {
         name: mockUser.channel.name,
         handle: mockUser.channel.handle,
         description: mockUser.channel.description,
+        avatarUrl,
         subscriberCount: mockUser.channel.subscriberCount,
       })
       .onConflictDoNothing()
@@ -178,7 +260,7 @@ async function insertMockUsers(mockUsers: MockUser[]): Promise<void> {
   }
 
   console.log(
-    `Done: ${insertedUsers}/${mockUsers.length} users, ${insertedChannels}/${mockUsers.length} channels inserted.`,
+    `Done: ${insertedUsers}/${mockUsers.length} users, ${insertedChannels}/${mockUsers.length} channels, ${generatedAvatars}/${mockUsers.length} avatars.`,
   );
 }
 
