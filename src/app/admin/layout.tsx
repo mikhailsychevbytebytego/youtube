@@ -2,16 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Cat } from "lucide-react";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { SignOutButton } from "@/components/admin/sign-out-button";
+import { requireAdmin } from "@/lib/require-admin";
 
 export const metadata: Metadata = {
   title: "Admin - MewTube",
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const admin = await requireAdmin();
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="flex h-14 items-center gap-2 border-b border-[#e5e5e5] px-4">
@@ -23,6 +27,10 @@ export default function AdminLayout({
             MewTube <span className="font-normal text-[#606060]">Admin</span>
           </span>
         </Link>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-sm text-[#606060]">{admin.email}</span>
+          <SignOutButton />
+        </div>
       </header>
       <div className="flex flex-1 items-start">
         <aside className="flex w-56 shrink-0 flex-col px-3 pt-3">

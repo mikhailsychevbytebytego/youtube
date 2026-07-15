@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { channels, users, videos, videoType } from "@/db/schema";
+import { requireAdmin } from "@/lib/require-admin";
 
 export type FormState = { error: string | null };
 
@@ -58,6 +59,7 @@ function parseUserForm(formData: FormData) {
     name: text(formData, "name"),
     email: text(formData, "email"),
     avatarUrl: optionalText(formData, "avatarUrl"),
+    isAdmin: checkbox(formData, "isAdmin"),
   };
 }
 
@@ -65,6 +67,7 @@ export async function createUser(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireAdmin();
   const values = parseUserForm(formData);
   if (!values.name || !values.email) {
     return { error: "Name and email are required." };
@@ -86,6 +89,7 @@ export async function updateUser(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireAdmin();
   const values = parseUserForm(formData);
   if (!values.name || !values.email) {
     return { error: "Name and email are required." };
@@ -106,6 +110,7 @@ export async function updateUser(
 }
 
 export async function deleteUser(id: string): Promise<void> {
+  await requireAdmin();
   await db.delete(users).where(eq(users.id, id));
   revalidateAdmin("users");
   revalidateAdmin("channels");
@@ -132,6 +137,7 @@ export async function createChannel(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireAdmin();
   const values = parseChannelForm(formData);
   if (!values.name || !values.handle || !values.userId) {
     return { error: "Name, handle, and owner are required." };
@@ -153,6 +159,7 @@ export async function updateChannel(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireAdmin();
   const values = parseChannelForm(formData);
   if (!values.name || !values.handle || !values.userId) {
     return { error: "Name, handle, and owner are required." };
@@ -173,6 +180,7 @@ export async function updateChannel(
 }
 
 export async function deleteChannel(id: string): Promise<void> {
+  await requireAdmin();
   await db.delete(channels).where(eq(channels.id, id));
   revalidateAdmin("channels");
   revalidateAdmin("videos");
@@ -202,6 +210,7 @@ export async function createVideo(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireAdmin();
   const values = parseVideoForm(formData);
   if (!values.title || !values.channelId) {
     return { error: "Title and channel are required." };
@@ -216,6 +225,7 @@ export async function updateVideo(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  await requireAdmin();
   const values = parseVideoForm(formData);
   if (!values.title || !values.channelId) {
     return { error: "Title and channel are required." };
@@ -229,6 +239,7 @@ export async function updateVideo(
 }
 
 export async function deleteVideo(id: string): Promise<void> {
+  await requireAdmin();
   await db.delete(videos).where(eq(videos.id, id));
   revalidateAdmin("videos");
 }

@@ -52,6 +52,15 @@ export function UserForm({
           className={inputClass}
         />
       </label>
+      <label className="flex items-center gap-2 text-sm font-medium text-[#0f0f0f]">
+        <input
+          type="checkbox"
+          name="isAdmin"
+          defaultChecked={user?.isAdmin ?? false}
+          className="size-4 accent-[#0f0f0f]"
+        />
+        Admin access
+      </label>
       <button type="submit" disabled={pending} className={submitClass}>
         {pending ? "Saving..." : user ? "Save changes" : "Create user"}
       </button>
