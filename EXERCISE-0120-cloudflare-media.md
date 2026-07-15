@@ -1,0 +1,19 @@
+# Exercise: Serve mock media from Cloudflare Images and Stream
+
+Continue from [EXERCISE-0110](EXERCISE-0110-better-auth.md): the mock generator produces real avatars, thumbnails, and mp4s, but everything lands in `public/` and is served by Next itself — fine on localhost, wrong for anything real. Have Agent move generated media to Cloudflare: images to Cloudflare Images (served from `imagedelivery.net`), videos to Cloudflare Stream (served as HLS from `cloudflarestream.com`).
+
+Prerequisite: `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_STREAM_API_TOKEN` in `.env`, where the token is an account API token with **both** `Stream: Edit` and `Cloudflare Images: Edit` permissions — a Stream-only token fails the image uploads with a 403.
+
+Ask Agent:
+
+> Let's integrate with Cloudflare, when generating images that needs serving - host them on Cloudflare CDN and for videos - upload and serve them form Cloudflare stremaing service. Update mock data generators to upload videos, images (if needed) to Cloudflare.
+
+The agent should end up doing roughly the following — verify each point when it's done:
+
+1. Add a small `src/lib/cloudflare.ts` using plain `fetch` (no SDK), matching the style of `mock.ts`: `uploadImage` POSTs a multipart form to `https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/images/v1`, validates the response with a Zod schema, and returns the `public` variant URL from `result.variants`; `uploadVideo` POSTs to `.../stream` (basic upload — a 6-second 720p clip is far under the 200 MB limit), then polls `GET /stream/{uid}` until `readyToStream` before returning the uid and the HLS playback URL (`.../manifest/video.m3u8`); an `isCloudflareConfigured` helper checks both env vars. Both APIs take the same `Authorization: Bearer` token.
+2. Route all media saves in `src/db/mock.ts` through `storeImage`/`storeVideo` wrappers: upload to Cloudflare when configured, fall back to the existing `public/images`/`public/videos` writes when not — preserving the script's warn-and-continue resilience. Avatars and thumbnails store the `imagedelivery.net` URL; videos store the HLS playback URL in `videoUrl` and finally populate the `streamUid` column that has been sitting unused in the schema. Seedance still consumes the fal-hosted thumbnail URL as its source frame — generation is untouched, only storage changes.
+3. Update `src/components/watch/video-player.tsx` for the format change: HLS manifests don't play in a native `<video>` tag in most browsers, so when `videoUrl` points at `cloudflarestream.com`, render the Stream iframe embed instead — `https://customer-<code>.cloudflarestream.com/<uid>/iframe` derived from the stored URL (or `streamUid`), with the thumbnail passed as the `poster` query param (absolute URLs only) and `allowFullScreen`. Local `/videos/...` paths keep the plain `<video>` element, and the static mock player stays for videos without files.
+4. Allow `imagedelivery.net` in `images.remotePatterns` in `next.config.ts` — until now every image was a same-origin path and `next/image` needed no config.
+5. Verify its own work: `npx tsc --noEmit` passes, a real `npm run db:mock -- --videos 1` run stores both uploads, the new row carries an `imagedelivery.net` thumbnail plus a `cloudflarestream.com` `video_url` and `stream_uid`, and the watch page renders the Stream iframe.
+
+**Check yourself:** run `npm run db:mock -- --videos 1` (same ~$1.45 Seedance cost as before, Cloudflare adds cents) and confirm nothing new appeared in `public/images/` or `public/videos/` — the new row in the database should carry Cloudflare URLs instead. Open the video's `/watch?v=<id>` page and play it through the Stream iframe, and check its thumbnail renders on the home grid via `next/image`. Older videos with local paths should still play through the plain `<video>` element. Bonus: comment out the `CLOUDFLARE_*` vars in `.env`, re-run the generator, and confirm it falls back to writing local files exactly like before.
