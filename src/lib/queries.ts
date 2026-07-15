@@ -1,5 +1,14 @@
 import { cache } from "react";
-import { and, desc, eq, gt, ne } from "drizzle-orm";
+import {
+  and,
+  cosineDistance,
+  desc,
+  eq,
+  gt,
+  isNotNull,
+  ne,
+  sql,
+} from "drizzle-orm";
 import { db } from "@/db";
 import { channels, videos, type Channel, type Video } from "@/db/schema";
 
@@ -145,6 +154,35 @@ export const getChannelWithContent = cache(
     return { channel: channelRow, featured, uploads, shorts };
   },
 );
+
+/**
+ * Semantic search: ranks videos by the smallest cosine distance between the
+ * query embedding and any of the three CLIP embeddings (title, description,
+ * thumbnail). LEAST ignores nulls, so videos missing an embedding still rank
+ * on the ones they have.
+ */
+export async function searchVideos(
+  queryEmbedding: number[],
+  limit = 12,
+): Promise<VideoWithChannel[]> {
+  const minDistance = sql<number>`least(
+    ${cosineDistance(videos.titleEmbedding, queryEmbedding)},
+    ${cosineDistance(videos.descriptionEmbedding, queryEmbedding)},
+    ${cosineDistance(videos.thumbnailEmbedding, queryEmbedding)}
+  )`;
+
+  const rows = await db
+    .select({ video: videos, channel: channels })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    // The title is always embedded first, so it doubles as the "has any
+    // embeddings" marker.
+    .where(and(eq(videos.isPublished, true), isNotNull(videos.titleEmbedding)))
+    .orderBy(minDistance)
+    .limit(limit);
+
+  return rows.map(({ video, channel }) => ({ ...video, channel }));
+}
 
 /**
  * Top channels for the subscription rails. `isLive` means the channel has a
