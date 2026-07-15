@@ -9,8 +9,8 @@ import { getTheme } from "@/lib/get-theme";
 import {
   getChannelShorts,
   getRecentShorts,
+  getRelatedVideos,
   getSidebarChannels,
-  getUpNextVideos,
   getWatchVideo,
 } from "@/lib/queries";
 
@@ -32,7 +32,7 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
   if (!video) notFound();
 
   const [upNext, kittenShorts, catShorts, subscriptions] = await Promise.all([
-    getUpNextVideos(video),
+    getRelatedVideos(video),
     getChannelShorts(video.channelId, 3),
     getRecentShorts(video.channelId, 3),
     getSidebarChannels(4),

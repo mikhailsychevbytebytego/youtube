@@ -87,6 +87,53 @@ export async function getUpNextVideos(
   });
 }
 
+/**
+ * Videos related to the current one, ranked by CLIP similarity: the smallest
+ * same-modality cosine distance (title-title, description-description,
+ * thumbnail-thumbnail) wins. LEAST ignores nulls, so partially embedded
+ * videos still rank. Falls back to recency when the current video has no
+ * embeddings.
+ */
+export async function getRelatedVideos(
+  current: Video,
+  limit = 4,
+): Promise<VideoWithChannel[]> {
+  if (!current.titleEmbedding) {
+    return getUpNextVideos(current, limit);
+  }
+
+  const minDistance = sql<number>`least(
+    ${cosineDistance(videos.titleEmbedding, current.titleEmbedding)},
+    ${
+      current.descriptionEmbedding
+        ? cosineDistance(videos.descriptionEmbedding, current.descriptionEmbedding)
+        : sql`null`
+    },
+    ${
+      current.thumbnailEmbedding
+        ? cosineDistance(videos.thumbnailEmbedding, current.thumbnailEmbedding)
+        : sql`null`
+    }
+  )`;
+
+  const rows = await db
+    .select({ video: videos, channel: channels })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(
+      and(
+        ne(videos.id, current.id),
+        ne(videos.type, "short"),
+        eq(videos.isPublished, true),
+        isNotNull(videos.titleEmbedding),
+      ),
+    )
+    .orderBy(minDistance)
+    .limit(limit);
+
+  return rows.map(({ video, channel }) => ({ ...video, channel }));
+}
+
 export async function getChannelShorts(
   channelId: string,
   limit = 6,
