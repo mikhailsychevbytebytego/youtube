@@ -14,6 +14,7 @@
     "db:mock": "tsx src/db/mock.ts"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
     "better-auth": "^1.6.23",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.24.0",
