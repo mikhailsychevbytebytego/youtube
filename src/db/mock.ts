@@ -3,6 +3,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import {
+  isCloudflareConfigured,
+  uploadImage,
+  uploadVideo,
+} from "../lib/cloudflare";
 import { db } from "./index";
 import { channels, users, videos } from "./schema";
 
@@ -382,6 +387,33 @@ async function saveVideo(fileName: string, video: Buffer): Promise<string> {
   return `/videos/${fileName}`;
 }
 
+/**
+ * Uploads the image to Cloudflare Images when configured, otherwise saves
+ * it under public/images. Returns the URL to store in the database.
+ */
+async function storeImage(fileName: string, image: Buffer): Promise<string> {
+  if (isCloudflareConfigured()) {
+    return uploadImage(image, fileName);
+  }
+  return saveImage(fileName, image);
+}
+
+/**
+ * Uploads the video to Cloudflare Stream when configured, otherwise saves
+ * it under public/videos. Returns the playback URL and Stream UID (null
+ * for local files).
+ */
+async function storeVideo(
+  fileName: string,
+  video: Buffer,
+): Promise<{ videoUrl: string; streamUid: string | null }> {
+  if (isCloudflareConfigured()) {
+    const { uid, playbackUrl } = await uploadVideo(video, fileName);
+    return { videoUrl: playbackUrl, streamUid: uid };
+  }
+  return { videoUrl: await saveVideo(fileName, video), streamUid: null };
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -413,9 +445,9 @@ async function insertVideo(
       video.thumbnailPrompt,
       THUMBNAIL_SIZE,
     );
-    thumbnailUrl = await saveImage(`mock-thumb-${slug}.png`, image);
+    thumbnailUrl = await storeImage(`mock-thumb-${slug}.png`, image);
     thumbnailRemoteUrl = remoteUrl;
-    console.log(`Saved thumbnail to ${thumbnailUrl}`);
+    console.log(`Stored thumbnail at ${thumbnailUrl}`);
   } catch (error) {
     console.warn(
       `Thumbnail generation failed for "${video.title}", continuing without one:`,
@@ -425,12 +457,15 @@ async function insertVideo(
 
   // The video animates the thumbnail, so it needs the fal-hosted source image.
   let videoUrl: string | null = null;
+  let streamUid: string | null = null;
   if (thumbnailRemoteUrl) {
     try {
       console.log(`Generating video for "${video.title}" (takes minutes)...`);
       const videoBytes = await generateVideo(video.script, thumbnailRemoteUrl);
-      videoUrl = await saveVideo(`mock-video-${slug}.mp4`, videoBytes);
-      console.log(`Saved video to ${videoUrl}`);
+      const stored = await storeVideo(`mock-video-${slug}.mp4`, videoBytes);
+      videoUrl = stored.videoUrl;
+      streamUid = stored.streamUid;
+      console.log(`Stored video at ${videoUrl}`);
     } catch (error) {
       console.warn(
         `Video generation failed for "${video.title}", continuing without one:`,
@@ -450,6 +485,7 @@ async function insertVideo(
     script: video.script,
     thumbnailUrl,
     videoUrl,
+    streamUid,
     durationSeconds: VIDEO_DURATION_SECONDS,
     viewCount: video.viewCount,
     likeCount: video.likeCount,
@@ -506,13 +542,13 @@ async function insertMockUsers(mockUsers: MockUser[]): Promise<void> {
     try {
       console.log(`Generating avatar for ${mockUser.channel.handle}...`);
       const { image } = await generateImage(mockUser.avatarPrompt, AVATAR_SIZE);
-      avatarUrl = await saveImage(
+      avatarUrl = await storeImage(
         `mock-avatar-${mockUser.channel.handle.replace(/^@/, "")}.png`,
         image,
       );
       await db.update(users).set({ avatarUrl }).where(eq(users.id, user.id));
       generatedAvatars++;
-      console.log(`Saved avatar to ${avatarUrl}`);
+      console.log(`Stored avatar at ${avatarUrl}`);
     } catch (error) {
       console.warn(
         `Avatar generation failed for ${mockUser.channel.handle}, continuing without one:`,

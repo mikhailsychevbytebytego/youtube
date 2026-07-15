@@ -12,7 +12,48 @@ import {
 import type { Video } from "@/db/schema";
 import { formatDuration } from "@/lib/format";
 
+/**
+ * Builds the Cloudflare Stream iframe embed URL from a stored playback URL
+ * (e.g. https://customer-x.cloudflarestream.com/<uid>/manifest/video.m3u8).
+ * Returns null for non-Stream URLs.
+ */
+function getStreamEmbedUrl(video: Video): string | null {
+  if (!video.videoUrl) return null;
+  let url: URL;
+  try {
+    url = new URL(video.videoUrl);
+  } catch {
+    return null; // relative /videos/... path
+  }
+  if (!url.hostname.endsWith("cloudflarestream.com")) return null;
+
+  const uid = video.streamUid ?? url.pathname.split("/").filter(Boolean)[0];
+  if (!uid) return null;
+
+  const embed = new URL(`/${uid}/iframe`, url.origin);
+  // The Stream poster parameter must be an absolute URL.
+  if (video.thumbnailUrl?.startsWith("https://")) {
+    embed.searchParams.set("poster", video.thumbnailUrl);
+  }
+  return embed.toString();
+}
+
 export function VideoPlayer({ video }: { video: Video }) {
+  const streamEmbedUrl = getStreamEmbedUrl(video);
+  if (streamEmbedUrl) {
+    return (
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#0f0f0f]">
+        <iframe
+          src={streamEmbedUrl}
+          title={video.title}
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+          className="size-full border-0"
+        />
+      </div>
+    );
+  }
+
   if (video.videoUrl) {
     return (
       <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#0f0f0f]">
