@@ -8,6 +8,7 @@ import {
   uploadImage,
   uploadVideo,
 } from "../lib/cloudflare";
+import { embedImage, embedText } from "../lib/embeddings";
 import { db } from "./index";
 import { channels, users, videos } from "./schema";
 
@@ -439,6 +440,7 @@ async function insertVideo(
 
   let thumbnailUrl: string | null = null;
   let thumbnailRemoteUrl: string | null = null;
+  let thumbnailBytes: Buffer | null = null;
   try {
     console.log(`Generating thumbnail for "${video.title}"...`);
     const { image, remoteUrl } = await generateImage(
@@ -447,10 +449,29 @@ async function insertVideo(
     );
     thumbnailUrl = await storeImage(`mock-thumb-${slug}.png`, image);
     thumbnailRemoteUrl = remoteUrl;
+    thumbnailBytes = image;
     console.log(`Stored thumbnail at ${thumbnailUrl}`);
   } catch (error) {
     console.warn(
       `Thumbnail generation failed for "${video.title}", continuing without one:`,
+      error,
+    );
+  }
+
+  // CLIP embeddings for similarity search; text and image share one space.
+  let titleEmbedding: number[] | null = null;
+  let descriptionEmbedding: number[] | null = null;
+  let thumbnailEmbedding: number[] | null = null;
+  try {
+    console.log(`Computing CLIP embeddings for "${video.title}"...`);
+    titleEmbedding = await embedText(video.title);
+    descriptionEmbedding = await embedText(video.description);
+    if (thumbnailBytes) {
+      thumbnailEmbedding = await embedImage(thumbnailBytes);
+    }
+  } catch (error) {
+    console.warn(
+      `Embedding computation failed for "${video.title}", continuing without embeddings:`,
       error,
     );
   }
@@ -486,6 +507,9 @@ async function insertVideo(
     thumbnailUrl,
     videoUrl,
     streamUid,
+    titleEmbedding,
+    descriptionEmbedding,
+    thumbnailEmbedding,
     durationSeconds: VIDEO_DURATION_SECONDS,
     viewCount: video.viewCount,
     likeCount: video.likeCount,

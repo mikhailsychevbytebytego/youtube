@@ -12,6 +12,7 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  vector,
 } from "drizzle-orm/pg-core";
 import { anonRole, authenticatedRole } from "drizzle-orm/supabase";
 
@@ -92,6 +93,11 @@ export const videos = pgTable(
     // Cloudflare Stream video UID; null until the upload is processed
     streamUid: text("stream_uid"),
     durationSeconds: integer("duration_seconds"),
+    // CLIP (clip-vit-base-patch32) embeddings; text and image share the
+    // same 512-dim space, so any of these can be compared to any other.
+    titleEmbedding: vector("title_embedding", { dimensions: 512 }),
+    descriptionEmbedding: vector("description_embedding", { dimensions: 512 }),
+    thumbnailEmbedding: vector("thumbnail_embedding", { dimensions: 512 }),
     isPublished: boolean("is_published").notNull().default(true),
     viewCount: bigint("view_count", { mode: "number" }).notNull().default(0),
     likeCount: bigint("like_count", { mode: "number" }).notNull().default(0),
