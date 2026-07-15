@@ -83,6 +83,8 @@ export const videos = pgTable(
     description: text("description"),
     // Production script used to generate the video (mock/AI-generated entries)
     script: text("script"),
+    // Local path to the AI-generated video file (mock entries)
+    videoUrl: text("video_url"),
     type: videoType("type").notNull().default("video"),
     thumbnailUrl: text("thumbnail_url"),
     // Cloudflare Stream video UID; null until the upload is processed

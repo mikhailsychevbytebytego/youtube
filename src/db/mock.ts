@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -9,10 +9,18 @@ import { channels, users, videos } from "./schema";
 const FAL_LLM_ENDPOINT = "https://fal.run/openrouter/router";
 const FAL_IMAGE_ENDPOINT =
   "https://fal.run/bytedance/seedream/v5/lite/text-to-image";
+// Video generation takes minutes, so it goes through fal's queue API
+// instead of the synchronous fal.run host.
+const FAL_VIDEO_QUEUE_ENDPOINT =
+  "https://queue.fal.run/bytedance/seedance-2.0/fast/image-to-video";
 const MODEL = "google/gemini-3.5-flash";
 const DEFAULT_USER_COUNT = 5;
 const DEFAULT_VIDEO_COUNT = 5;
+const VIDEO_DURATION_SECONDS = 6;
+const VIDEO_POLL_INTERVAL_MS = 10_000;
+const VIDEO_TIMEOUT_MS = 15 * 60_000;
 const IMAGES_DIR = path.join(process.cwd(), "public", "images");
+const VIDEOS_DIR = path.join(process.cwd(), "public", "videos");
 
 // Seedream requires total pixels between 2560x1440 and 4096x4096.
 const AVATAR_SIZE = { width: 2048, height: 2048 }; // smallest 1:1
@@ -55,6 +63,19 @@ const imageResultSchema = z.object({
   images: z.array(z.object({ url: z.url() })).min(1),
 });
 
+const queueSubmitSchema = z.object({
+  status_url: z.url(),
+  response_url: z.url(),
+});
+
+const queueStatusSchema = z.object({
+  status: z.string(),
+});
+
+const videoResultSchema = z.object({
+  video: z.object({ url: z.url() }),
+});
+
 type MockVideo = z.infer<typeof mockVideoSchema>;
 type MockUser = z.infer<typeof mockUserSchema>;
 
@@ -62,7 +83,7 @@ const VIDEO_EXAMPLE_JSON = [
   "  {",
   '    "title": "Sir Whiskers Storms the Cardboard Castle",',
   '    "description": "A brave knight faces his greatest foe: a wobbly box fort.",',
-  '    "script": "Medieval fantasy, painterly style. A tabby cat in tiny armor charges a cardboard castle, leaps, and the whole fort collapses on top of him. Final close-up on his unimpressed face under a paper flag. 5 seconds.",',
+  '    "script": "Medieval fantasy, painterly style. A tabby cat in tiny armor charges a cardboard castle, leaps, and the whole fort collapses on top of him. Final close-up on his unimpressed face under a paper flag. 6 seconds.",',
   '    "thumbnailPrompt": "Painterly fantasy illustration, 16:9: a tabby cat in shining knight armor charging a cardboard castle at sunset, dramatic lighting, epic yet silly.",',
   '    "viewCount": 812000,',
   '    "likeCount": 45000',
@@ -70,10 +91,10 @@ const VIDEO_EXAMPLE_JSON = [
 ];
 
 const VIDEO_RULES = [
-  "- every video is a funny 5-second cat video",
+  "- every video is a funny 6-second cat video",
   "- vary the visual style ACROSS videos: photorealism, cinematic film, cartoon, 3D render, claymation, watercolor, anime, pixel art...",
   "- vary the story genre ACROSS videos: slice of life, cooking fail, sports, noir, sci-fi, horror-comedy, medieval fantasy...",
-  '- "script" is the production script for the 5-second video: visual style, scene setting, the cat\'s action, and camera notes',
+  '- "script" is the production script for the 6-second video: visual style, scene setting, the cat\'s action, and camera notes',
   '- "description" is one short viewer-facing sentence (no production details)',
   '- "thumbnailPrompt" is a one-to-two sentence text-to-image prompt for a 16:9 thumbnail that restates the video\'s visual style',
   "- viewCount is an integer between 100 and 50000000, likeCount is plausible relative to viewCount",
@@ -216,11 +237,11 @@ async function callLlm<T>(prompt: string, schema: z.ZodType<T>): Promise<T> {
   return parsed.data;
 }
 
-/** Generates an image with Seedream and returns the image bytes. */
+/** Generates an image with Seedream; returns the bytes and the fal-hosted URL. */
 async function generateImage(
   prompt: string,
   size: { width: number; height: number },
-): Promise<Buffer> {
+): Promise<{ image: Buffer; remoteUrl: string }> {
   const response = await fetch(FAL_IMAGE_ENDPOINT, {
     method: "POST",
     headers: {
@@ -253,13 +274,112 @@ async function generateImage(
       `Failed to download image (${imageResponse.status}) from ${imageUrl}`,
     );
   }
-  return Buffer.from(await imageResponse.arrayBuffer());
+  return {
+    image: Buffer.from(await imageResponse.arrayBuffer()),
+    remoteUrl: imageUrl,
+  };
+}
+
+/**
+ * Generates a video with Seedance 2.0 Fast from the script and a source image
+ * via fal's queue API, and returns the mp4 bytes.
+ */
+async function generateVideo(
+  script: string,
+  imageUrl: string,
+): Promise<Buffer> {
+  const headers = {
+    Authorization: `Key ${getFalKey()}`,
+    "Content-Type": "application/json",
+  };
+
+  const submitResponse = await fetch(FAL_VIDEO_QUEUE_ENDPOINT, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      prompt: script,
+      image_url: imageUrl,
+      duration: String(VIDEO_DURATION_SECONDS),
+      resolution: "720p",
+      aspect_ratio: "16:9",
+    }),
+  });
+  if (!submitResponse.ok) {
+    const body = await submitResponse.text();
+    throw new Error(
+      `Seedance submit failed (${submitResponse.status}): ${body}`,
+    );
+  }
+
+  const submitted = queueSubmitSchema.safeParse(await submitResponse.json());
+  if (!submitted.success) {
+    throw new Error(
+      `Seedance queue response did not match the expected schema: ${z.prettifyError(submitted.error)}`,
+    );
+  }
+
+  const deadline = Date.now() + VIDEO_TIMEOUT_MS;
+  for (;;) {
+    await new Promise((resolve) =>
+      setTimeout(resolve, VIDEO_POLL_INTERVAL_MS),
+    );
+    if (Date.now() > deadline) {
+      throw new Error("Seedance generation timed out");
+    }
+
+    const statusResponse = await fetch(submitted.data.status_url, { headers });
+    if (!statusResponse.ok) {
+      const body = await statusResponse.text();
+      throw new Error(
+        `Seedance status check failed (${statusResponse.status}): ${body}`,
+      );
+    }
+    const status = queueStatusSchema.safeParse(await statusResponse.json());
+    if (!status.success) {
+      throw new Error(
+        `Seedance status response did not match the expected schema: ${z.prettifyError(status.error)}`,
+      );
+    }
+    if (status.data.status === "COMPLETED") {
+      break;
+    }
+    console.log(`  ...video status: ${status.data.status}`);
+  }
+
+  const resultResponse = await fetch(submitted.data.response_url, { headers });
+  if (!resultResponse.ok) {
+    const body = await resultResponse.text();
+    throw new Error(
+      `Seedance result fetch failed (${resultResponse.status}): ${body}`,
+    );
+  }
+  const result = videoResultSchema.safeParse(await resultResponse.json());
+  if (!result.success) {
+    throw new Error(
+      `Seedance result did not match the expected schema: ${z.prettifyError(result.error)}`,
+    );
+  }
+
+  const videoResponse = await fetch(result.data.video.url);
+  if (!videoResponse.ok) {
+    throw new Error(
+      `Failed to download video (${videoResponse.status}) from ${result.data.video.url}`,
+    );
+  }
+  return Buffer.from(await videoResponse.arrayBuffer());
 }
 
 /** Saves image bytes under public/images and returns the public path. */
 async function saveImage(fileName: string, image: Buffer): Promise<string> {
   await writeFile(path.join(IMAGES_DIR, fileName), image);
   return `/images/${fileName}`;
+}
+
+/** Saves video bytes under public/videos and returns the public path. */
+async function saveVideo(fileName: string, video: Buffer): Promise<string> {
+  await mkdir(VIDEOS_DIR, { recursive: true });
+  await writeFile(path.join(VIDEOS_DIR, fileName), video);
+  return `/videos/${fileName}`;
 }
 
 function slugify(text: string): string {
@@ -276,26 +396,50 @@ function randomPublishedAt(): Date {
 }
 
 /**
- * Generates the thumbnail and inserts the video row for a channel.
- * Returns whether the thumbnail was generated (the row is always inserted).
+ * Generates the thumbnail and video and inserts the video row for a channel.
+ * Returns which assets were generated (the row is always inserted).
  */
 async function insertVideo(
   channelId: string,
   video: MockVideo,
-): Promise<{ thumbnail: boolean }> {
+): Promise<{ thumbnail: boolean; videoFile: boolean }> {
+  const slug = slugify(video.title);
+
   let thumbnailUrl: string | null = null;
+  let thumbnailRemoteUrl: string | null = null;
   try {
     console.log(`Generating thumbnail for "${video.title}"...`);
-    const image = await generateImage(video.thumbnailPrompt, THUMBNAIL_SIZE);
-    thumbnailUrl = await saveImage(
-      `mock-thumb-${slugify(video.title)}.png`,
-      image,
+    const { image, remoteUrl } = await generateImage(
+      video.thumbnailPrompt,
+      THUMBNAIL_SIZE,
     );
+    thumbnailUrl = await saveImage(`mock-thumb-${slug}.png`, image);
+    thumbnailRemoteUrl = remoteUrl;
     console.log(`Saved thumbnail to ${thumbnailUrl}`);
   } catch (error) {
     console.warn(
       `Thumbnail generation failed for "${video.title}", continuing without one:`,
       error,
+    );
+  }
+
+  // The video animates the thumbnail, so it needs the fal-hosted source image.
+  let videoUrl: string | null = null;
+  if (thumbnailRemoteUrl) {
+    try {
+      console.log(`Generating video for "${video.title}" (takes minutes)...`);
+      const videoBytes = await generateVideo(video.script, thumbnailRemoteUrl);
+      videoUrl = await saveVideo(`mock-video-${slug}.mp4`, videoBytes);
+      console.log(`Saved video to ${videoUrl}`);
+    } catch (error) {
+      console.warn(
+        `Video generation failed for "${video.title}", continuing without one:`,
+        error,
+      );
+    }
+  } else {
+    console.warn(
+      `Skipping video generation for "${video.title}" (no source thumbnail)`,
     );
   }
 
@@ -305,7 +449,8 @@ async function insertVideo(
     description: video.description,
     script: video.script,
     thumbnailUrl,
-    durationSeconds: 5,
+    videoUrl,
+    durationSeconds: VIDEO_DURATION_SECONDS,
     viewCount: video.viewCount,
     likeCount: video.likeCount,
     publishedAt: randomPublishedAt(),
@@ -314,7 +459,7 @@ async function insertVideo(
     `Inserted video "${video.title}" (${video.viewCount.toLocaleString()} views)`,
   );
 
-  return { thumbnail: thumbnailUrl !== null };
+  return { thumbnail: thumbnailUrl !== null, videoFile: videoUrl !== null };
 }
 
 async function generateMockUsers(count: number): Promise<MockUser[]> {
@@ -340,6 +485,7 @@ async function insertMockUsers(mockUsers: MockUser[]): Promise<void> {
   let generatedAvatars = 0;
   let insertedVideos = 0;
   let generatedThumbnails = 0;
+  let generatedVideoFiles = 0;
 
   for (const mockUser of mockUsers) {
     const [user] = await db
@@ -359,7 +505,7 @@ async function insertMockUsers(mockUsers: MockUser[]): Promise<void> {
     let avatarUrl: string | null = null;
     try {
       console.log(`Generating avatar for ${mockUser.channel.handle}...`);
-      const image = await generateImage(mockUser.avatarPrompt, AVATAR_SIZE);
+      const { image } = await generateImage(mockUser.avatarPrompt, AVATAR_SIZE);
       avatarUrl = await saveImage(
         `mock-avatar-${mockUser.channel.handle.replace(/^@/, "")}.png`,
         image,
@@ -400,14 +546,15 @@ async function insertMockUsers(mockUsers: MockUser[]): Promise<void> {
     );
 
     for (const video of mockUser.videos) {
-      const { thumbnail } = await insertVideo(channel.id, video);
+      const { thumbnail, videoFile } = await insertVideo(channel.id, video);
       insertedVideos++;
       if (thumbnail) generatedThumbnails++;
+      if (videoFile) generatedVideoFiles++;
     }
   }
 
   console.log(
-    `Done: ${insertedUsers}/${mockUsers.length} users, ${insertedChannels}/${mockUsers.length} channels, ${generatedAvatars}/${mockUsers.length} avatars, ${insertedVideos}/${totalVideos} videos, ${generatedThumbnails}/${totalVideos} thumbnails.`,
+    `Done: ${insertedUsers}/${mockUsers.length} users, ${insertedChannels}/${mockUsers.length} channels, ${generatedAvatars}/${mockUsers.length} avatars, ${insertedVideos}/${totalVideos} videos, ${generatedThumbnails}/${totalVideos} thumbnails, ${generatedVideoFiles}/${totalVideos} video files.`,
   );
 }
 
@@ -442,6 +589,7 @@ async function generateVideosForExistingChannels(count: number): Promise<void> {
   const byHandle = new Map(targets.map((c) => [c.handle, c]));
   let insertedVideos = 0;
   let generatedThumbnails = 0;
+  let generatedVideoFiles = 0;
 
   for (const entry of generated) {
     const channel = byHandle.get(entry.handle);
@@ -452,13 +600,14 @@ async function generateVideosForExistingChannels(count: number): Promise<void> {
       continue;
     }
     console.log(`Adding video to ${channel.handle}...`);
-    const { thumbnail } = await insertVideo(channel.id, entry.video);
+    const { thumbnail, videoFile } = await insertVideo(channel.id, entry.video);
     insertedVideos++;
     if (thumbnail) generatedThumbnails++;
+    if (videoFile) generatedVideoFiles++;
   }
 
   console.log(
-    `Done: ${insertedVideos}/${generated.length} videos, ${generatedThumbnails}/${generated.length} thumbnails.`,
+    `Done: ${insertedVideos}/${generated.length} videos, ${generatedThumbnails}/${generated.length} thumbnails, ${generatedVideoFiles}/${generated.length} video files.`,
   );
 }
 

@@ -13,6 +13,20 @@ import type { Video } from "@/db/schema";
 import { formatDuration } from "@/lib/format";
 
 export function VideoPlayer({ video }: { video: Video }) {
+  if (video.videoUrl) {
+    return (
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#0f0f0f]">
+        <video
+          src={video.videoUrl}
+          poster={video.thumbnailUrl ?? undefined}
+          controls
+          playsInline
+          className="size-full object-cover"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#0f0f0f]">
       <Image
