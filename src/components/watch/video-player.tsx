@@ -1,7 +1,11 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   ArrowRight,
   Captions,
+  CirclePause,
   CirclePlay,
   Fullscreen,
   PictureInPicture,
@@ -31,6 +35,7 @@ function getStreamEmbedUrl(video: Video): string | null {
   if (!uid) return null;
 
   const embed = new URL(`/${uid}/iframe`, url.origin);
+  embed.searchParams.set("autoplay", "true");
   // The Stream poster parameter must be an absolute URL.
   if (video.thumbnailUrl?.startsWith("https://")) {
     embed.searchParams.set("poster", video.thumbnailUrl);
@@ -39,7 +44,109 @@ function getStreamEmbedUrl(video: Video): string | null {
 }
 
 export function VideoPlayer({ video }: { video: Video }) {
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [toastState, setToastState] = useState<{
+    visible: boolean;
+    pingCount: number;
+    lastPingAt: string | null;
+  }>({
+    visible: false,
+    pingCount: 0,
+    lastPingAt: null,
+  });
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const streamEmbedUrl = getStreamEmbedUrl(video);
+
+  // Watch time tracking: report a ping every 2 seconds while video is playing
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const sendPing = async () => {
+      try {
+        const res = await fetch("/api/watch-time", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ videoId: video.id }),
+        });
+
+        if (res.ok) {
+          const now = new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+
+          setToastState((prev) => ({
+            visible: true,
+            pingCount: prev.pingCount + 1,
+            lastPingAt: now,
+          }));
+
+          if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+          hideTimerRef.current = setTimeout(() => {
+            setToastState((prev) => ({ ...prev, visible: false }));
+          }, 1600);
+        }
+      } catch (error) {
+        console.error("Failed to send watch time ping:", error);
+      }
+    };
+
+    const interval = setInterval(sendPing, 2000);
+
+    return () => {
+      clearInterval(interval);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, [isPlaying, video.id]);
+
+  // Handle postMessages from Cloudflare Stream iframe
+  useEffect(() => {
+    if (!streamEmbedUrl) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      if (typeof event.data === "string") {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === "play") setIsPlaying(true);
+          if (data.event === "pause" || data.event === "ended") setIsPlaying(false);
+        } catch {
+          // Ignore non-JSON messages
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [streamEmbedUrl]);
+
+  const renderToastOverlay = () => (
+    <div
+      className={`pointer-events-none absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full border border-white/20 bg-black/80 px-3 py-1.5 text-xs text-white shadow-lg backdrop-blur-md transition-all duration-300 ${
+        toastState.visible
+          ? "translate-y-0 opacity-100 scale-100"
+          : "translate-y-2 opacity-0 scale-95"
+      }`}
+    >
+      <span className="relative flex size-2 shrink-0">
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+        <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+      </span>
+      <span className="font-medium tracking-tight">
+        Watch time pinged (+2s)
+      </span>
+      {toastState.lastPingAt && (
+        <span className="font-mono text-[10px] opacity-70">
+          • {toastState.lastPingAt}
+        </span>
+      )}
+    </div>
+  );
+
   if (streamEmbedUrl) {
     return (
       <div className="relative aspect-video w-full overflow-hidden rounded-none bg-[#0f0f0f] md:rounded-xl">
@@ -50,6 +157,7 @@ export function VideoPlayer({ video }: { video: Video }) {
           allowFullScreen
           className="size-full border-0"
         />
+        {renderToastOverlay()}
       </div>
     );
   }
@@ -58,12 +166,18 @@ export function VideoPlayer({ video }: { video: Video }) {
     return (
       <div className="relative aspect-video w-full overflow-hidden rounded-none bg-[#0f0f0f] md:rounded-xl">
         <video
+          ref={videoRef}
           src={video.videoUrl}
           poster={video.thumbnailUrl ?? undefined}
           controls
+          autoPlay
           playsInline
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
           className="size-full object-cover"
         />
+        {renderToastOverlay()}
       </div>
     );
   }
@@ -85,7 +199,18 @@ export function VideoPlayer({ video }: { video: Video }) {
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <CirclePlay className="size-[18px] text-white" />
+              <button
+                type="button"
+                onClick={() => setIsPlaying((prev) => !prev)}
+                aria-label={isPlaying ? "Pause" : "Play"}
+                className="text-white hover:opacity-80"
+              >
+                {isPlaying ? (
+                  <CirclePause className="size-[18px]" />
+                ) : (
+                  <CirclePlay className="size-[18px]" />
+                )}
+              </button>
               <ArrowRight className="size-[18px] text-white" />
               <Volume2 className="size-[18px] text-white" />
               <span className="text-[13px] text-white">
@@ -102,6 +227,7 @@ export function VideoPlayer({ video }: { video: Video }) {
           </div>
         </div>
       </div>
+      {renderToastOverlay()}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import "dotenv/config";
+import { hashPassword } from "better-auth/crypto";
 import { db } from "./index";
-import { channels, users, videos, type NewVideo } from "./schema";
+import { accounts, channels, users, videos, watchEvents, type NewVideo } from "./schema";
 
 function ago({
   minutes = 0,
@@ -444,8 +445,49 @@ const seedChannels: SeedChannel[] = [
   },
 ];
 
+export async function seedWatchEvents() {
+  console.log("Seeding fake watch events for the last 7 days...");
+  const allVideos = await db.select({ id: videos.id }).from(videos);
+  if (allVideos.length === 0) return;
+
+  const now = new Date();
+  const eventsToInsert: { videoId: string; seconds: number; createdAt: Date }[] = [];
+
+  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+    const dayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOffset);
+    const dayStartMs = dayDate.getTime();
+
+    for (const video of allVideos) {
+      const eventCount = Math.floor(Math.random() * 31) + 10;
+      for (let i = 0; i < eventCount; i++) {
+        const randomTimeMs = dayStartMs + Math.random() * 86_400_000;
+        if (randomTimeMs > now.getTime()) continue;
+
+        eventsToInsert.push({
+          videoId: video.id,
+          seconds: 2,
+          createdAt: new Date(randomTimeMs),
+        });
+      }
+    }
+  }
+
+  await db.delete(watchEvents);
+
+  if (eventsToInsert.length > 0) {
+    const batchSize = 500;
+    for (let i = 0; i < eventsToInsert.length; i += batchSize) {
+      const batch = eventsToInsert.slice(i, i + batchSize);
+      await db.insert(watchEvents).values(batch);
+    }
+  }
+
+  console.log(`Seeded ${eventsToInsert.length} watch events across last 7 days.`);
+}
+
 async function seed() {
   console.log("Clearing existing data...");
+  await db.delete(watchEvents);
   await db.delete(videos);
   await db.delete(channels);
   await db.delete(users);
@@ -494,6 +536,33 @@ async function seed() {
   console.log(
     `Done: ${seedChannels.length} users, ${seedChannels.length} channels, ${totalVideos} videos.`,
   );
+
+  console.log("Seeding admin user...");
+  const args = process.argv.slice(2);
+  const adminEmail = args[0] || process.env.ADMIN_EMAIL || "mikhail.sychev.bytebytego@gmail.com";
+  const adminPassword = args[1] || process.env.ADMIN_PASSWORD || "mew-admin";
+  const adminName = args[2] || process.env.ADMIN_NAME || "Mikhail Sychev";
+
+  const hashedPassword = await hashPassword(adminPassword);
+  const [adminUser] = await db
+    .insert(users)
+    .values({
+      name: adminName,
+      email: adminEmail,
+      isAdmin: true,
+      emailVerified: true,
+    })
+    .returning();
+
+  await db.insert(accounts).values({
+    userId: adminUser.id,
+    accountId: adminUser.id,
+    providerId: "credential",
+    password: hashedPassword,
+  });
+  console.log("Seeded admin user:", adminEmail);
+
+  await seedWatchEvents();
 }
 
 seed()
