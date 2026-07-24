@@ -27,6 +27,7 @@
 # local caches
 /.cache/
 /ai-cache/
+/.mock-cache/
 
 # debug
 npm-debug.log*

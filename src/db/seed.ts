@@ -492,7 +492,8 @@ async function seed() {
   await db.delete(channels);
   await db.delete(users);
 
-  for (const seedChannel of seedChannels) {
+  for (let channelIndex = 0; channelIndex < seedChannels.length; channelIndex++) {
+    const seedChannel = seedChannels[channelIndex];
     const [owner] = await db
       .insert(users)
       .values({
@@ -565,9 +566,11 @@ async function seed() {
   await seedWatchEvents();
 }
 
-seed()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+if (process.argv[1] && process.argv[1].endsWith("seed.ts")) {
+  seed()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
+}
