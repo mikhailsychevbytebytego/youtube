@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { mkdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -23,11 +24,25 @@ const FAL_VIDEO_QUEUE_ENDPOINT =
 const MODEL = "google/gemini-3.5-flash";
 const DEFAULT_USER_COUNT = 5;
 const DEFAULT_VIDEO_COUNT = 5;
-const VIDEO_DURATION_SECONDS = 6;
+const VIDEO_DURATION_SECONDS = 8;
 const VIDEO_POLL_INTERVAL_MS = 10_000;
 const VIDEO_TIMEOUT_MS = 15 * 60_000;
 const IMAGES_DIR = path.join(process.cwd(), "public", "images");
 const VIDEOS_DIR = path.join(process.cwd(), "public", "videos");
+const CACHE_DIR = path.join(process.cwd(), ".mock-cache");
+
+async function ensureCacheDirs(): Promise<void> {
+  await Promise.all([
+    mkdir(path.join(CACHE_DIR, "llm"), { recursive: true }),
+    mkdir(path.join(CACHE_DIR, "images"), { recursive: true }),
+    mkdir(path.join(CACHE_DIR, "videos"), { recursive: true }),
+    mkdir(path.join(CACHE_DIR, "embeddings"), { recursive: true }),
+  ]);
+}
+
+function sha256(data: string | Buffer): string {
+  return createHash("sha256").update(data).digest("hex");
+}
 
 // Seedream requires total pixels between 2560x1440 and 4096x4096.
 const AVATAR_SIZE = { width: 2048, height: 2048 }; // smallest 1:1
@@ -90,7 +105,7 @@ const VIDEO_EXAMPLE_JSON = [
   "  {",
   '    "title": "Sir Whiskers Storms the Cardboard Castle",',
   '    "description": "A brave knight faces his greatest foe: a wobbly box fort.",',
-  '    "script": "Medieval fantasy, painterly style. A tabby cat in tiny armor charges a cardboard castle, leaps, and the whole fort collapses on top of him. Final close-up on his unimpressed face under a paper flag. 6 seconds.",',
+  '    "script": "Medieval fantasy, painterly style. A tabby cat in tiny armor charges a cardboard castle, leaps, and the whole fort collapses on top of him. Final close-up on his unimpressed face under a paper flag. 8 seconds.",',
   '    "thumbnailPrompt": "Painterly fantasy illustration, 16:9: a tabby cat in shining knight armor charging a cardboard castle at sunset, dramatic lighting, epic yet silly.",',
   '    "viewCount": 812000,',
   '    "likeCount": 45000',
@@ -98,10 +113,10 @@ const VIDEO_EXAMPLE_JSON = [
 ];
 
 const VIDEO_RULES = [
-  "- every video is a funny 6-second cat video",
+  "- every video is a funny 8-second cat video",
   "- vary the visual style ACROSS videos: photorealism, cinematic film, cartoon, 3D render, claymation, watercolor, anime, pixel art...",
   "- vary the story genre ACROSS videos: slice of life, cooking fail, sports, noir, sci-fi, horror-comedy, medieval fantasy...",
-  '- "script" is the production script for the 6-second video: visual style, scene setting, the cat\'s action, and camera notes',
+  '- "script" is the production script for the 8-second video: visual style, scene setting, the cat\'s action, and camera notes',
   '- "description" is one short viewer-facing sentence (no production details)',
   '- "thumbnailPrompt" is a one-to-two sentence text-to-image prompt for a 16:9 thumbnail that restates the video\'s visual style',
   "- viewCount is an integer between 100 and 50000000, likeCount is plausible relative to viewCount",
@@ -192,6 +207,22 @@ function getFalKey(): string {
 
 /** Sends a prompt to the LLM and returns its output validated against schema. */
 async function callLlm<T>(prompt: string, schema: z.ZodType<T>): Promise<T> {
+  await ensureCacheDirs();
+  const hash = sha256(prompt);
+  const cachePath = path.join(CACHE_DIR, "llm", `${hash}.json`);
+
+  try {
+    const cachedData = await readFile(cachePath, "utf-8");
+    const json = JSON.parse(cachedData);
+    const parsed = schema.safeParse(json);
+    if (parsed.success) {
+      console.log("[cache hit] Reusing cached LLM response");
+      return parsed.data;
+    }
+  } catch {
+    // Cache miss or parse error, continue to fetch from LLM
+  }
+
   const response = await fetch(FAL_LLM_ENDPOINT, {
     method: "POST",
     headers: {
@@ -241,14 +272,39 @@ async function callLlm<T>(prompt: string, schema: z.ZodType<T>): Promise<T> {
     throw new Error("Generated JSON did not match the expected schema");
   }
 
+  try {
+    await writeFile(cachePath, JSON.stringify(json, null, 2), "utf-8");
+  } catch (err) {
+    console.warn("Failed to write LLM cache:", err);
+  }
+
   return parsed.data;
 }
 
-/** Generates an image with Seedream; returns the bytes and the fal-hosted URL. */
+/** Generates an image with Seedream; returns the bytes, the fal-hosted URL, and image hash. */
 async function generateImage(
   prompt: string,
   size: { width: number; height: number },
-): Promise<{ image: Buffer; remoteUrl: string }> {
+): Promise<{ image: Buffer; remoteUrl: string; imageHash: string }> {
+  await ensureCacheDirs();
+  const hash = sha256(`${prompt}:${size.width}x${size.height}`);
+  const imageCachePath = path.join(CACHE_DIR, "images", `${hash}.png`);
+  const metaCachePath = path.join(CACHE_DIR, "images", `${hash}.json`);
+
+  try {
+    const [imageBuf, metaStr] = await Promise.all([
+      readFile(imageCachePath),
+      readFile(metaCachePath, "utf-8"),
+    ]);
+    const meta = JSON.parse(metaStr) as { remoteUrl: string };
+    if (meta.remoteUrl) {
+      console.log("[cache hit] Reusing cached image");
+      return { image: imageBuf, remoteUrl: meta.remoteUrl, imageHash: hash };
+    }
+  } catch {
+    // Cache miss
+  }
+
   const response = await fetch(FAL_IMAGE_ENDPOINT, {
     method: "POST",
     headers: {
@@ -281,9 +337,25 @@ async function generateImage(
       `Failed to download image (${imageResponse.status}) from ${imageUrl}`,
     );
   }
+  const imageBuf = Buffer.from(await imageResponse.arrayBuffer());
+
+  try {
+    await Promise.all([
+      writeFile(imageCachePath, imageBuf),
+      writeFile(
+        metaCachePath,
+        JSON.stringify({ remoteUrl: imageUrl }, null, 2),
+        "utf-8",
+      ),
+    ]);
+  } catch (err) {
+    console.warn("Failed to write image cache:", err);
+  }
+
   return {
-    image: Buffer.from(await imageResponse.arrayBuffer()),
+    image: imageBuf,
     remoteUrl: imageUrl,
+    imageHash: hash,
   };
 }
 
@@ -293,8 +365,22 @@ async function generateImage(
  */
 async function generateVideo(
   script: string,
-  imageUrl: string,
+  sourceImageUrl: string,
+  imageHashOrUrl?: string,
 ): Promise<Buffer> {
+  await ensureCacheDirs();
+  const hashKey = imageHashOrUrl || sourceImageUrl;
+  const hash = sha256(`${script}:${hashKey}`);
+  const videoCachePath = path.join(CACHE_DIR, "videos", `${hash}.mp4`);
+
+  try {
+    const videoBuf = await readFile(videoCachePath);
+    console.log("[cache hit] Reusing cached video");
+    return videoBuf;
+  } catch {
+    // Cache miss
+  }
+
   const headers = {
     Authorization: `Key ${getFalKey()}`,
     "Content-Type": "application/json",
@@ -305,7 +391,7 @@ async function generateVideo(
     headers,
     body: JSON.stringify({
       prompt: script,
-      image_url: imageUrl,
+      image_url: sourceImageUrl,
       duration: String(VIDEO_DURATION_SECONDS),
       resolution: "720p",
       aspect_ratio: "16:9",
@@ -373,7 +459,15 @@ async function generateVideo(
       `Failed to download video (${videoResponse.status}) from ${result.data.video.url}`,
     );
   }
-  return Buffer.from(await videoResponse.arrayBuffer());
+  const videoBuf = Buffer.from(await videoResponse.arrayBuffer());
+
+  try {
+    await writeFile(videoCachePath, videoBuf);
+  } catch (err) {
+    console.warn("Failed to write video cache:", err);
+  }
+
+  return videoBuf;
 }
 
 /** Saves image bytes under public/images and returns the public path. */
@@ -416,6 +510,56 @@ async function storeVideo(
   return { videoUrl: await saveVideo(fileName, video), streamUid: null };
 }
 
+async function getCachedEmbedText(text: string): Promise<number[]> {
+  await ensureCacheDirs();
+  const hash = sha256(`text:${text}`);
+  const cachePath = path.join(CACHE_DIR, "embeddings", `${hash}.json`);
+
+  try {
+    const data = await readFile(cachePath, "utf-8");
+    const vector = JSON.parse(data) as number[];
+    if (Array.isArray(vector)) {
+      console.log("[cache hit] Reusing cached text embedding");
+      return vector;
+    }
+  } catch {
+    // Cache miss
+  }
+
+  const vector = await embedText(text);
+  try {
+    await writeFile(cachePath, JSON.stringify(vector), "utf-8");
+  } catch (err) {
+    console.warn("Failed to write text embedding cache:", err);
+  }
+  return vector;
+}
+
+async function getCachedEmbedImage(imageBytes: Buffer): Promise<number[]> {
+  await ensureCacheDirs();
+  const hash = sha256(imageBytes);
+  const cachePath = path.join(CACHE_DIR, "embeddings", `${hash}.json`);
+
+  try {
+    const data = await readFile(cachePath, "utf-8");
+    const vector = JSON.parse(data) as number[];
+    if (Array.isArray(vector)) {
+      console.log("[cache hit] Reusing cached image embedding");
+      return vector;
+    }
+  } catch {
+    // Cache miss
+  }
+
+  const vector = await embedImage(imageBytes);
+  try {
+    await writeFile(cachePath, JSON.stringify(vector), "utf-8");
+  } catch (err) {
+    console.warn("Failed to write image embedding cache:", err);
+  }
+  return vector;
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -425,7 +569,7 @@ function slugify(text: string): string {
 }
 
 function randomPublishedAt(): Date {
-  const daysAgo = Math.random() * 90;
+  const daysAgo = Math.random() * 2;
   return new Date(Date.now() - daysAgo * 86_400_000);
 }
 
@@ -442,15 +586,17 @@ async function insertVideo(
   let thumbnailUrl: string | null = null;
   let thumbnailRemoteUrl: string | null = null;
   let thumbnailBytes: Buffer | null = null;
+  let thumbnailImageHash: string | null = null;
   try {
     console.log(`Generating thumbnail for "${video.title}"...`);
-    const { image, remoteUrl } = await generateImage(
+    const { image, remoteUrl, imageHash } = await generateImage(
       video.thumbnailPrompt,
       THUMBNAIL_SIZE,
     );
     thumbnailUrl = await storeImage(`mock-thumb-${slug}.png`, image);
     thumbnailRemoteUrl = remoteUrl;
     thumbnailBytes = image;
+    thumbnailImageHash = imageHash;
     console.log(`Stored thumbnail at ${thumbnailUrl}`);
   } catch (error) {
     console.warn(
@@ -465,10 +611,10 @@ async function insertVideo(
   let thumbnailEmbedding: number[] | null = null;
   try {
     console.log(`Computing CLIP embeddings for "${video.title}"...`);
-    titleEmbedding = await embedText(video.title);
-    descriptionEmbedding = await embedText(video.description);
+    titleEmbedding = await getCachedEmbedText(video.title);
+    descriptionEmbedding = await getCachedEmbedText(video.description);
     if (thumbnailBytes) {
-      thumbnailEmbedding = await embedImage(thumbnailBytes);
+      thumbnailEmbedding = await getCachedEmbedImage(thumbnailBytes);
     }
   } catch (error) {
     console.warn(
@@ -483,7 +629,11 @@ async function insertVideo(
   if (thumbnailRemoteUrl) {
     try {
       console.log(`Generating video for "${video.title}" (takes minutes)...`);
-      const videoBytes = await generateVideo(video.script, thumbnailRemoteUrl);
+      const videoBytes = await generateVideo(
+        video.script,
+        thumbnailRemoteUrl,
+        thumbnailImageHash || undefined,
+      );
       const stored = await storeVideo(`mock-video-${slug}.mp4`, videoBytes);
       videoUrl = stored.videoUrl;
       streamUid = stored.streamUid;
@@ -652,19 +802,26 @@ async function generateVideosForExistingChannels(count: number): Promise<void> {
   let generatedThumbnails = 0;
   let generatedVideoFiles = 0;
 
-  for (const entry of generated) {
-    const channel = byHandle.get(entry.handle);
-    if (!channel) {
-      console.warn(
-        `Skipped video "${entry.video.title}" (unknown handle ${entry.handle})`,
-      );
-      continue;
+  const results = await Promise.all(
+    generated.map(async (entry) => {
+      const channel = byHandle.get(entry.handle);
+      if (!channel) {
+        console.warn(
+          `Skipped video "${entry.video.title}" (unknown handle ${entry.handle})`,
+        );
+        return null;
+      }
+      console.log(`Adding video to ${channel.handle}...`);
+      return insertVideo(channel.id, entry.video);
+    }),
+  );
+
+  for (const res of results) {
+    if (res) {
+      insertedVideos++;
+      if (res.thumbnail) generatedThumbnails++;
+      if (res.videoFile) generatedVideoFiles++;
     }
-    console.log(`Adding video to ${channel.handle}...`);
-    const { thumbnail, videoFile } = await insertVideo(channel.id, entry.video);
-    insertedVideos++;
-    if (thumbnail) generatedThumbnails++;
-    if (videoFile) generatedVideoFiles++;
   }
 
   console.log(
