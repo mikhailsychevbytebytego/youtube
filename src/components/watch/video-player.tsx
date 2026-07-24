@@ -29,13 +29,20 @@ function getStreamEmbedUrl(video: Video): string | null {
   } catch {
     return null; // relative /videos/... path
   }
-  if (!url.hostname.endsWith("cloudflarestream.com")) return null;
+  if (
+    !url.hostname.endsWith("cloudflarestream.com") &&
+    !url.hostname.endsWith("videodelivery.net")
+  ) {
+    return null;
+  }
 
   const uid = video.streamUid ?? url.pathname.split("/").filter(Boolean)[0];
   if (!uid) return null;
 
-  const embed = new URL(`/${uid}/iframe`, url.origin);
+  const embed = new URL(`https://iframe.videodelivery.net/${uid}`);
   embed.searchParams.set("autoplay", "true");
+  embed.searchParams.set("muted", "true");
+  embed.searchParams.set("preload", "true");
   // The Stream poster parameter must be an absolute URL.
   if (video.thumbnailUrl?.startsWith("https://")) {
     embed.searchParams.set("poster", video.thumbnailUrl);
@@ -109,13 +116,25 @@ export function VideoPlayer({ video }: { video: Video }) {
     if (!streamEmbedUrl) return;
 
     const handleMessage = (event: MessageEvent) => {
+      let data: Record<string, unknown> | null = null;
       if (typeof event.data === "string") {
         try {
-          const data = JSON.parse(event.data);
-          if (data.event === "play") setIsPlaying(true);
-          if (data.event === "pause" || data.event === "ended") setIsPlaying(false);
+          data = JSON.parse(event.data);
         } catch {
-          // Ignore non-JSON messages
+          return;
+        }
+      } else if (typeof event.data === "object" && event.data !== null) {
+        data = event.data as Record<string, unknown>;
+      }
+
+      if (data) {
+        if (data.event === "play" || data.action === "play") setIsPlaying(true);
+        if (
+          data.event === "pause" ||
+          data.action === "pause" ||
+          data.event === "ended"
+        ) {
+          setIsPlaying(false);
         }
       }
     };
@@ -153,7 +172,7 @@ export function VideoPlayer({ video }: { video: Video }) {
         <iframe
           src={streamEmbedUrl}
           title={video.title}
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
           className="size-full border-0"
         />

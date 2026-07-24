@@ -21,7 +21,11 @@ const UUID_RE =
 
 export async function getHomeVideos(limit = 8): Promise<VideoWithChannel[]> {
   return db.query.videos.findMany({
-    where: and(eq(videos.type, "video"), eq(videos.isPublished, true)),
+    where: and(
+      eq(videos.type, "video"),
+      eq(videos.isPublished, true),
+      isNotNull(videos.videoUrl),
+    ),
     orderBy: desc(videos.publishedAt),
     limit,
     with: { channel: true },
@@ -55,18 +59,31 @@ export const getWatchVideo = cache(
     const channel = await db.query.channels.findFirst({
       where: eq(channels.handle, "@whiskerwonders"),
     });
-    if (!channel) return null;
+    if (channel) {
+      const video = await db.query.videos.findFirst({
+        where: and(
+          eq(videos.channelId, channel.id),
+          eq(videos.type, "video"),
+          eq(videos.isPublished, true),
+          isNotNull(videos.videoUrl),
+        ),
+        orderBy: desc(videos.publishedAt),
+        with: { channel: true },
+      });
+      if (video) return video;
+    }
 
-    const video = await db.query.videos.findFirst({
-      where: and(
-        eq(videos.channelId, channel.id),
-        eq(videos.type, "video"),
-        eq(videos.isPublished, true),
-      ),
-      orderBy: desc(videos.publishedAt),
-      with: { channel: true },
-    });
-    return video ?? null;
+    return (
+      (await db.query.videos.findFirst({
+        where: and(
+          eq(videos.type, "video"),
+          eq(videos.isPublished, true),
+          isNotNull(videos.videoUrl),
+        ),
+        orderBy: desc(videos.publishedAt),
+        with: { channel: true },
+      })) ?? null
+    );
   },
 );
 
@@ -80,6 +97,7 @@ export async function getUpNextVideos(
       ne(videos.channelId, current.channelId),
       ne(videos.type, "short"),
       eq(videos.isPublished, true),
+      isNotNull(videos.videoUrl),
     ),
     orderBy: desc(videos.publishedAt),
     limit,
@@ -185,6 +203,7 @@ export async function getRelatedVideos(
         ne(videos.type, "short"),
         eq(videos.isPublished, true),
         isNotNull(videos.titleEmbedding),
+        isNotNull(videos.videoUrl),
       ),
     );
 
@@ -285,7 +304,13 @@ export async function searchVideos(
     .innerJoin(channels, eq(videos.channelId, channels.id))
     // The title is always embedded first, so it doubles as the "has any
     // embeddings" marker.
-    .where(and(eq(videos.isPublished, true), isNotNull(videos.titleEmbedding)));
+    .where(
+      and(
+        eq(videos.isPublished, true),
+        isNotNull(videos.titleEmbedding),
+        isNotNull(videos.videoUrl),
+      ),
+    );
 
   return fuseTextAndThumbRanks(rows, limit).map(({ video, channel }) => ({
     ...video,
