@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
+    "db:admin": "tsx src/scripts/setup-admin.ts",
     "db:mock": "tsx src/db/mock.ts"
   },
   "dependencies": {

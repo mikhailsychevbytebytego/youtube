@@ -209,10 +209,41 @@ export const channelsRelations = relations(channels, ({ one, many }) => ({
   videos: many(videos),
 }));
 
-export const videosRelations = relations(videos, ({ one }) => ({
+export const videosRelations = relations(videos, ({ one, many }) => ({
   channel: one(channels, {
     fields: [videos.channelId],
     references: [channels.id],
+  }),
+  watchEvents: many(watchEvents),
+}));
+
+export const watchEvents = pgTable(
+  "watch_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    videoId: uuid("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    seconds: integer("seconds").notNull().default(2),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("watch_events_video_id_idx").on(table.videoId),
+    index("watch_events_created_at_idx").on(table.createdAt),
+    pgPolicy("watch_events_select_all", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
+  ],
+);
+
+export const watchEventsRelations = relations(watchEvents, ({ one }) => ({
+  video: one(videos, {
+    fields: [watchEvents.videoId],
+    references: [videos.id],
   }),
 }));
 
@@ -222,3 +253,5 @@ export type Channel = typeof channels.$inferSelect;
 export type NewChannel = typeof channels.$inferInsert;
 export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
+export type WatchEvent = typeof watchEvents.$inferSelect;
+export type NewWatchEvent = typeof watchEvents.$inferInsert;

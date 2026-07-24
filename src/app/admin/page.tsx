@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Eye, SquarePlay, Tv2, Users } from "lucide-react";
+import { Clock, Eye, SquarePlay, Tv2, Users } from "lucide-react";
 import { getDashboardStats } from "@/lib/admin-queries";
-import { formatCount, timeAgo } from "@/lib/format";
+import { formatCount, formatWatchTime, timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,7 @@ export default async function AdminDashboard() {
     <>
       <h1 className="text-2xl font-bold text-[#0f0f0f]">Dashboard</h1>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <StatCard
           label="Users"
           value={String(stats.users)}
@@ -65,6 +65,12 @@ export default async function AdminDashboard() {
           label="Total views"
           value={formatCount(stats.totalViews)}
           icon={Eye}
+        />
+        <StatCard
+          label="Watch time"
+          value={formatWatchTime(stats.totalWatchTimeSeconds)}
+          icon={Clock}
+          href="/admin/watch-time"
         />
       </div>
 

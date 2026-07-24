@@ -10,6 +10,7 @@ import {
 } from "../lib/cloudflare";
 import { embedImage, embedText } from "../lib/embeddings";
 import { db } from "./index";
+import { seedWatchEvents } from "./seed";
 import { channels, users, videos } from "./schema";
 
 const FAL_LLM_ENDPOINT = "https://fal.run/openrouter/router";
@@ -691,6 +692,7 @@ async function main() {
   if (args[0] === "--videos") {
     const count = parseCount(args[1], DEFAULT_VIDEO_COUNT, "Video count");
     await generateVideosForExistingChannels(count);
+    await seedWatchEvents();
     return;
   }
 
@@ -698,6 +700,7 @@ async function main() {
   const mockUsers = await generateMockUsers(count);
   console.log(`Model returned ${mockUsers.length} users.`);
   await insertMockUsers(mockUsers);
+  await seedWatchEvents();
 }
 
 main()
