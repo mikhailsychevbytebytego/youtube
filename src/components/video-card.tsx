@@ -20,8 +20,8 @@ export function VideoCard({ video }: { video: VideoWithChannel }) {
       </Link>
       <div className="flex items-start gap-3">
         <Link
-          href="/channel"
-          className="relative size-9 shrink-0 overflow-hidden rounded-full"
+          href={`/channel?id=${video.channel.id}`}
+          className="relative size-9 shrink-0 overflow-hidden rounded-full hover:opacity-80 transition-opacity"
         >
           <Image
             src={video.channel.avatarUrl ?? "/images/avatar-user.png"}
@@ -33,12 +33,15 @@ export function VideoCard({ video }: { video: VideoWithChannel }) {
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <Link href={`/watch?v=${video.id}`}>
-            <h3 className="line-clamp-2 text-base font-semibold text-foreground">
+            <h3 className="line-clamp-2 text-base font-semibold text-foreground hover:text-foreground/80">
               {video.title}
             </h3>
           </Link>
           <div className="flex flex-col gap-0.5 text-sm text-muted">
-            <Link href="/channel" className="hover:text-foreground">
+            <Link
+              href={`/channel?id=${video.channel.id}`}
+              className="hover:text-foreground transition-colors truncate"
+            >
               {video.channel.name}
             </Link>
             <p>

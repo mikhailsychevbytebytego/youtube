@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ChevronRight, PawPrint, Search } from "lucide-react";
 import type { Channel } from "@/db/schema";
 import { formatCount } from "@/lib/format";
+import { SubscribeButton } from "@/components/subscribe-button";
 
 const channelTabs = [
   "Home",
@@ -12,7 +13,13 @@ const channelTabs = [
   "Community",
 ];
 
-export function ChannelHero({ channel }: { channel: Channel }) {
+export function ChannelHero({
+  channel,
+  initialSubscribed,
+}: {
+  channel: Channel;
+  initialSubscribed?: boolean;
+}) {
   return (
     <>
       <div className="h-28 w-full px-3 pt-3 md:h-[200px] md:p-6">
@@ -60,10 +67,13 @@ export function ChannelHero({ channel }: { channel: Channel }) {
               </span>
               <ChevronRight className="size-4 text-muted" />
             </button>
-            <button className="flex min-h-11 items-center gap-3 self-start rounded-3xl bg-[#ff0000] px-6 py-3">
-              <PawPrint className="size-5 text-white" />
-              <span className="text-xs font-bold text-white">Purrscribe</span>
-            </button>
+            <SubscribeButton
+              channelId={channel.id}
+              initialSubscribed={initialSubscribed}
+              subscriberCount={channel.subscriberCount}
+              size="lg"
+              className="self-start"
+            />
           </div>
         </div>
 

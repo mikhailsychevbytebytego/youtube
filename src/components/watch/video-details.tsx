@@ -2,16 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowUpNarrowWide,
-  ChevronDown,
   CircleCheck,
   EllipsisVertical,
-  PawPrint,
   Share,
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
 import type { VideoWithChannel } from "@/lib/queries";
 import { formatCount, formatViews, timeAgo } from "@/lib/format";
+import { SubscribeButton } from "@/components/subscribe-button";
 
 const watchComment = {
   author: "PurrfectLife",
@@ -21,7 +20,13 @@ const watchComment = {
   likes: "2.1K",
 };
 
-export function VideoDetails({ video }: { video: VideoWithChannel }) {
+export function VideoDetails({
+  video,
+  initialSubscribed,
+}: {
+  video: VideoWithChannel;
+  initialSubscribed?: boolean;
+}) {
   const lines = (video.description ?? "").split("\n");
   const hashtags = lines
     .filter((line) => line.trim().startsWith("#"))
@@ -37,7 +42,7 @@ export function VideoDetails({ video }: { video: VideoWithChannel }) {
       <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Link
-            href="/channel"
+            href={`/channel?id=${video.channel.id}`}
             className="relative size-10 shrink-0 overflow-hidden rounded-full"
           >
             <Image
@@ -51,7 +56,7 @@ export function VideoDetails({ video }: { video: VideoWithChannel }) {
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-1">
               <Link
-                href="/channel"
+                href={`/channel?id=${video.channel.id}`}
                 className="text-base font-semibold text-foreground"
               >
                 {video.channel.name}
@@ -62,13 +67,12 @@ export function VideoDetails({ video }: { video: VideoWithChannel }) {
               {formatCount(video.channel.subscriberCount, 2)} purrscribers
             </span>
           </div>
-          <button className="flex min-h-11 items-center gap-2 rounded-full bg-surface px-4 py-2">
-            <PawPrint className="size-[18px] text-foreground" />
-            <span className="text-sm font-semibold text-foreground">
-              Purrscribed
-            </span>
-            <ChevronDown className="size-4 text-foreground" />
-          </button>
+          <SubscribeButton
+            channelId={video.channel.id}
+            initialSubscribed={initialSubscribed}
+            subscriberCount={video.channel.subscriberCount}
+            size="md"
+          />
         </div>
 
         <div className="-mx-3 flex items-start gap-2 overflow-x-auto px-3 md:mx-0 md:px-0">

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { WatchChrome } from "@/components/watch/watch-chrome";
 import { VideoPlayer } from "@/components/watch/video-player";
 import { VideoDetails } from "@/components/watch/video-details";
 import { WatchRightRail } from "@/components/watch/watch-right-rail";
+import { auth } from "@/lib/auth";
 import { getTheme } from "@/lib/get-theme";
 import {
   getChannelShorts,
+  getIsSubscribed,
   getRecentShorts,
   getRelatedVideos,
   getSidebarChannels,
@@ -27,15 +30,21 @@ export async function generateMetadata({
 
 export default async function WatchPage({ searchParams }: WatchPageProps) {
   const { v } = await searchParams;
-  const [theme, video] = await Promise.all([getTheme(), getWatchVideo(v)]);
+  const video = await getWatchVideo(v);
   if (!video) notFound();
 
-  const [upNext, kittenShorts, catShorts, subscriptions] = await Promise.all([
-    getRelatedVideos(video),
-    getChannelShorts(video.channelId, 3),
-    getRecentShorts(video.channelId, 3),
-    getSidebarChannels(4),
-  ]);
+  const session = await auth.api.getSession({ headers: await headers() });
+  const userId = session?.user?.id;
+
+  const [theme, upNext, kittenShorts, catShorts, subscriptions, isSubscribed] =
+    await Promise.all([
+      getTheme(),
+      getRelatedVideos(video),
+      getChannelShorts(video.channelId, 3),
+      getRecentShorts(video.channelId, 3),
+      getSidebarChannels(4),
+      getIsSubscribed(userId, video.channelId),
+    ]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -44,7 +53,10 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
           <main className="flex min-w-0 flex-1 flex-col gap-3 p-0 lg:p-6">
             <VideoPlayer video={video} />
             <div className="px-3 lg:px-0">
-              <VideoDetails video={video} />
+              <VideoDetails
+                video={video}
+                initialSubscribed={isSubscribed}
+              />
             </div>
           </main>
           <WatchRightRail
