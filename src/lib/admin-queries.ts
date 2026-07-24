@@ -1,9 +1,10 @@
-import { count, desc, eq, sum } from "drizzle-orm";
+import { count, desc, eq, sql, sum } from "drizzle-orm";
 import { db } from "@/db";
 import {
   channels,
   users,
   videos,
+  watchEvents,
   type Channel,
   type User,
   type Video,
@@ -35,12 +36,13 @@ function toPaginated<T>(rows: T[], total: number, page: number): Paginated<T> {
 }
 
 export async function getDashboardStats() {
-  const [[userCount], [channelCount], [videoCount], [viewTotal], recentVideos] =
+  const [[userCount], [channelCount], [videoCount], [viewTotal], [watchTimeTotal], recentVideos] =
     await Promise.all([
       db.select({ value: count() }).from(users),
       db.select({ value: count() }).from(channels),
       db.select({ value: count() }).from(videos),
       db.select({ value: sum(videos.viewCount) }).from(videos),
+      db.select({ value: sum(watchEvents.seconds) }).from(watchEvents),
       db.query.videos.findMany({
         orderBy: desc(videos.createdAt),
         limit: 5,
@@ -53,6 +55,7 @@ export async function getDashboardStats() {
     channels: channelCount.value,
     videos: videoCount.value,
     totalViews: Number(viewTotal.value ?? 0),
+    totalWatchTimeSeconds: Number(watchTimeTotal.value ?? 0),
     recentVideos,
   };
 }
@@ -125,4 +128,112 @@ export async function getAllUsers(): Promise<User[]> {
 /** All channels for the video form's channel select. */
 export async function getAllChannels(): Promise<Channel[]> {
   return db.query.channels.findMany({ orderBy: channels.name });
+}
+
+export type DailyWatchTime = {
+  date: string;
+  totalSeconds: number;
+  eventCount: number;
+};
+
+export type PerVideoDailyWatchTime = {
+  videoId: string;
+  videoTitle: string;
+  channelName: string;
+  thumbnailUrl: string | null;
+  date: string;
+  totalSeconds: number;
+  eventCount: number;
+};
+
+export async function getCumulativeDailyWatchTime(): Promise<DailyWatchTime[]> {
+  const dateSql = sql<string>`to_char(${watchEvents.createdAt}, 'YYYY-MM-DD')`;
+  const rows = await db
+    .select({
+      date: dateSql,
+      totalSeconds: sum(watchEvents.seconds),
+      eventCount: count(),
+    })
+    .from(watchEvents)
+    .groupBy(dateSql)
+    .orderBy(desc(dateSql));
+
+  return rows.map((r) => ({
+    date: r.date,
+    totalSeconds: Number(r.totalSeconds ?? 0),
+    eventCount: Number(r.eventCount ?? 0),
+  }));
+}
+
+export async function getPerVideoDailyWatchTime(): Promise<PerVideoDailyWatchTime[]> {
+  const dateSql = sql<string>`to_char(${watchEvents.createdAt}, 'YYYY-MM-DD')`;
+  const rows = await db
+    .select({
+      videoId: watchEvents.videoId,
+      videoTitle: videos.title,
+      channelName: channels.name,
+      thumbnailUrl: videos.thumbnailUrl,
+      date: dateSql,
+      totalSeconds: sum(watchEvents.seconds),
+      eventCount: count(),
+    })
+    .from(watchEvents)
+    .innerJoin(videos, eq(watchEvents.videoId, videos.id))
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .groupBy(
+      watchEvents.videoId,
+      videos.title,
+      channels.name,
+      videos.thumbnailUrl,
+      dateSql,
+    )
+    .orderBy(desc(dateSql), desc(sum(watchEvents.seconds)));
+
+  return rows.map((r) => ({
+    videoId: r.videoId,
+    videoTitle: r.videoTitle,
+    channelName: r.channelName,
+    thumbnailUrl: r.thumbnailUrl,
+    date: r.date,
+    totalSeconds: Number(r.totalSeconds ?? 0),
+    eventCount: Number(r.eventCount ?? 0),
+  }));
+}
+
+export async function getTotalWatchTime(): Promise<number> {
+  const [row] = await db
+    .select({ total: sum(watchEvents.seconds) })
+    .from(watchEvents);
+  return Number(row?.total ?? 0);
+}
+
+export async function getVideoWatchTime(videoId: string) {
+  if (!isUuid(videoId)) return { totalSeconds: 0, daily: [] };
+
+  const dateSql = sql<string>`to_char(${watchEvents.createdAt}, 'YYYY-MM-DD')`;
+  const [totalRow, dailyRows] = await Promise.all([
+    db
+      .select({ total: sum(watchEvents.seconds) })
+      .from(watchEvents)
+      .where(eq(watchEvents.videoId, videoId)),
+    db
+      .select({
+        date: dateSql,
+        totalSeconds: sum(watchEvents.seconds),
+        eventCount: count(),
+      })
+      .from(watchEvents)
+      .where(eq(watchEvents.videoId, videoId))
+      .groupBy(dateSql)
+      .orderBy(desc(dateSql)),
+  ]);
+
+  return {
+    totalSeconds: Number(totalRow[0]?.total ?? 0),
+    daily: dailyRows.map((r) => ({
+      date: r.date,
+      totalSeconds: Number(r.totalSeconds ?? 0),
+      eventCount: Number(r.eventCount ?? 0),
+    })),
+  };
 }

@@ -218,6 +218,29 @@ export const videoLikes = pgTable(
   ],
 ).enableRLS();
 
+export const watchEvents = pgTable(
+  "watch_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    videoId: uuid("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    seconds: integer("seconds").notNull().default(2),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("watch_events_video_id_idx").on(table.videoId),
+    index("watch_events_created_at_idx").on(table.createdAt),
+    pgPolicy("watch_events_select_all", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
+  ],
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   channels: many(channels),
   likes: many(videoLikes),
@@ -237,6 +260,7 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
     references: [channels.id],
   }),
   likes: many(videoLikes),
+  watchEvents: many(watchEvents),
 }));
 
 export const videoLikesRelations = relations(videoLikes, ({ one }) => ({
@@ -250,6 +274,13 @@ export const videoLikesRelations = relations(videoLikes, ({ one }) => ({
   }),
 }));
 
+export const watchEventsRelations = relations(watchEvents, ({ one }) => ({
+  video: one(videos, {
+    fields: [watchEvents.videoId],
+    references: [videos.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
@@ -258,3 +289,5 @@ export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
 export type VideoLike = typeof videoLikes.$inferSelect;
 export type NewVideoLike = typeof videoLikes.$inferInsert;
+export type WatchEvent = typeof watchEvents.$inferSelect;
+export type NewWatchEvent = typeof watchEvents.$inferInsert;

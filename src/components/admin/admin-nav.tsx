@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Clock,
   ExternalLink,
   LayoutDashboard,
   SquarePlay,
@@ -16,6 +17,7 @@ const navItems: { label: string; href: string; icon: LucideIcon }[] = [
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Channels", href: "/admin/channels", icon: Tv2 },
   { label: "Videos", href: "/admin/videos", icon: SquarePlay },
+  { label: "Watch time", href: "/admin/watch-time", icon: Clock },
 ];
 
 export function AdminNav() {
