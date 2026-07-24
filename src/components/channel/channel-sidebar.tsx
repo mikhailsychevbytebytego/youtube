@@ -1,7 +1,6 @@
-import Image from "next/image";
+import Link from "next/link";
 import {
   Cat,
-  ChevronDown,
   Clock,
   FireExtinguisher,
   Gamepad2,
@@ -16,41 +15,44 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { SidebarChannel } from "@/lib/queries";
+import { SidebarSubscriptions } from "@/components/sidebar-subscriptions";
 
-const mainNav: { label: string; icon: LucideIcon; active?: boolean }[] = [
-  { label: "Home", icon: House, active: true },
-  { label: "PawFeed", icon: PawPrint },
-  { label: "Subscriptions", icon: Users },
+const mainNav: { label: string; icon: LucideIcon; href: string }[] = [
+  { label: "Home", icon: House, href: "/" },
+  { label: "PawFeed", icon: PawPrint, href: "/search?q=cats" },
+  { label: "Subscriptions", icon: Users, href: "/subscriptions" },
 ];
 
-const libraryNav: { label: string; icon: LucideIcon }[] = [
-  { label: "Library", icon: Library },
-  { label: "History", icon: History },
-  { label: "Your videos", icon: Video },
-  { label: "Watch later", icon: Clock },
-  { label: "Liked videos", icon: ThumbsUp },
+const libraryNav: { label: string; icon: LucideIcon; href: string }[] = [
+  { label: "Library", icon: Library, href: "#" },
+  { label: "History", icon: History, href: "#" },
+  { label: "Your videos", icon: Video, href: "#" },
+  { label: "Watch later", icon: Clock, href: "#" },
+  { label: "Liked videos", icon: ThumbsUp, href: "#" },
 ];
 
-const exploreNav: { label: string; icon: LucideIcon }[] = [
-  { label: "Trending", icon: FireExtinguisher },
-  { label: "Music", icon: Music },
-  { label: "Gaming", icon: Gamepad2 },
-  { label: "Meow & Chill", icon: Cat },
+const exploreNav: { label: string; icon: LucideIcon; href: string }[] = [
+  { label: "Trending", icon: FireExtinguisher, href: "/search?q=trending" },
+  { label: "Music", icon: Music, href: "/search?q=music" },
+  { label: "Gaming", icon: Gamepad2, href: "/search?q=gaming" },
+  { label: "Meow & Chill", icon: Cat, href: "/search?q=chill" },
 ];
 
 function NavItem({
   label,
   icon: Icon,
+  href,
   active,
 }: {
   label: string;
   icon: LucideIcon;
+  href: string;
   active?: boolean;
 }) {
   return (
-    <a
-      href="#"
-      className={`flex w-full items-center gap-5 rounded-[10px] px-3 py-2.5 ${
+    <Link
+      href={href}
+      className={`flex w-full items-center gap-5 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-surface ${
         active ? "bg-surface" : ""
       }`}
     >
@@ -64,7 +66,7 @@ function NavItem({
       >
         {label}
       </span>
-    </a>
+    </Link>
   );
 }
 
@@ -87,36 +89,7 @@ export function ChannelSidebar({
         ))}
       </nav>
       <div className="w-full border-t border-border" />
-      <div className="flex w-full flex-col gap-2">
-        <h3 className="px-3 text-xs font-bold text-foreground">Subscriptions</h3>
-        {subscriptions.map((sub) => (
-          <a
-            key={sub.id}
-            href="#"
-            className="flex w-full items-center gap-4 rounded-[10px] px-3 py-2"
-          >
-            <div className="relative size-6 shrink-0 overflow-hidden rounded-full">
-              <Image
-                src={sub.avatarUrl ?? "/images/avatar-user.png"}
-                alt={sub.name}
-                fill
-                sizes="24px"
-                className="object-cover"
-              />
-            </div>
-            <span className="flex-1 truncate text-sm text-foreground">
-              {sub.name}
-            </span>
-            {sub.hasNew && (
-              <span className="size-1 shrink-0 rounded-full bg-[#ff0000]" />
-            )}
-          </a>
-        ))}
-        <button className="flex items-center gap-3 pl-3">
-          <ChevronDown className="size-5 text-foreground" />
-          <span className="text-sm text-foreground">Show 8 more</span>
-        </button>
-      </div>
+      <SidebarSubscriptions initialChannels={subscriptions} />
       <div className="w-full border-t border-border" />
       <div className="flex w-full flex-col gap-2">
         <h3 className="px-3 text-xs font-bold text-foreground">Explore</h3>

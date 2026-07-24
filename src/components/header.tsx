@@ -3,7 +3,13 @@ import { BellDot, CircleX, Menu, Mic, Play, Search } from "lucide-react";
 import { UserMenu } from "@/components/user-menu";
 import type { Theme } from "@/lib/theme";
 
-export function Header({ theme, query }: { theme: Theme; query?: string }) {
+export function Header({
+  theme = "light",
+  query,
+}: {
+  theme?: Theme;
+  query?: string;
+}) {
   return (
     <header className="flex h-14 w-full shrink-0 items-center justify-between px-3 md:px-6">
       <div className="flex items-center gap-3 md:gap-6">

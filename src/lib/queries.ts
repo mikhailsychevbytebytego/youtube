@@ -13,6 +13,7 @@ import {
 import { db } from "@/db";
 import {
   channels,
+  subscriptions,
   videoLikes,
   videos,
   type Channel,
@@ -481,9 +482,10 @@ export type ChannelContent = {
 };
 
 export const getChannelWithContent = cache(
-  async (handle: string): Promise<ChannelContent | null> => {
+  async (identifier: string): Promise<ChannelContent | null> => {
+    const isUuid = UUID_RE.test(identifier);
     const channel = await db.query.channels.findFirst({
-      where: eq(channels.handle, handle),
+      where: isUuid ? eq(channels.id, identifier) : eq(channels.handle, identifier),
       with: { videos: true },
     });
     if (!channel) return null;
@@ -585,4 +587,22 @@ export async function getSidebarChannels(
     isLive: liveIds.has(channel.id),
     hasNew: recentIds.has(channel.id),
   }));
+}
+
+export async function getIsSubscribed(
+  userId: string | undefined,
+  channelId: string,
+): Promise<boolean> {
+  if (!userId) return false;
+  const existing = await db
+    .select({ id: subscriptions.id })
+    .from(subscriptions)
+    .where(
+      and(
+        eq(subscriptions.userId, userId),
+        eq(subscriptions.channelId, channelId),
+      ),
+    )
+    .limit(1);
+  return existing.length > 0;
 }
