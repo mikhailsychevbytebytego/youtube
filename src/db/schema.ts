@@ -247,6 +247,40 @@ export const watchEventsRelations = relations(watchEvents, ({ one }) => ({
   }),
 }));
 
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    channelId: uuid("channel_id")
+      .notNull()
+      .references(() => channels.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("subscriptions_user_id_idx").on(table.userId),
+    index("subscriptions_channel_id_idx").on(table.channelId),
+    pgPolicy("subscriptions_select_all", {
+      for: "select",
+      to: [anonRole, authenticatedRole],
+      using: sql`true`,
+    }),
+  ],
+);
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+  channel: one(channels, {
+    fields: [subscriptions.channelId],
+    references: [channels.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
@@ -255,3 +289,5 @@ export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
 export type WatchEvent = typeof watchEvents.$inferSelect;
 export type NewWatchEvent = typeof watchEvents.$inferInsert;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;

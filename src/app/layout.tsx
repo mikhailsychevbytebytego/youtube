@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { CatConfetti } from "@/components/cat-confetti";
 import { getTheme } from "@/lib/get-theme";
 import "./globals.css";
 
@@ -32,7 +33,10 @@ export default async function RootLayout({
         theme === "dark" ? "dark" : ""
       }`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <CatConfetti />
+      </body>
     </html>
   );
 }

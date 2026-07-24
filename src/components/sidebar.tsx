@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   ClockPlus,
@@ -13,13 +12,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { SidebarChannel } from "@/lib/queries";
+import { SidebarSubscriptions } from "@/components/sidebar-subscriptions";
 
-const mainNav: { label: string; icon: LucideIcon; href: string }[] = [
+const mainNav: { label: string; icon: LucideIcon; href: string; active?: boolean }[] = [
   { label: "Home", icon: House, href: "/" },
   { label: "Shorts", icon: Zap, href: "/shorts" },
-  { label: "Explore", icon: Compass, href: "#" },
-  { label: "Cat Shows", icon: Tv2, href: "#" },
-  { label: "Subscriptions", icon: FolderHeart, href: "#" },
+  { label: "Explore", icon: Compass, href: "/search?q=cats" },
+  { label: "Cat Shows", icon: Tv2, href: "/search?q=shows" },
+  { label: "Subscriptions", icon: FolderHeart, href: "/subscriptions" },
 ];
 
 const libraryNav: { label: string; icon: LucideIcon; href: string }[] = [
@@ -43,7 +43,7 @@ function NavItem({
   return (
     <Link
       href={href}
-      className={`flex w-full items-center gap-5 rounded-[10px] px-3 py-2.5 ${
+      className={`flex w-full items-center gap-5 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-surface ${
         active ? "bg-surface" : ""
       }`}
     >
@@ -67,7 +67,7 @@ export function Sidebar({
   activeItem?: string;
 }) {
   return (
-    <aside className="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto px-3 pt-3">
+    <aside className="flex w-60 shrink-0 flex-col gap-3 px-3 pt-3">
       <nav className="flex w-full flex-col gap-1">
         {mainNav.map((item) => (
           <NavItem
@@ -80,40 +80,11 @@ export function Sidebar({
       <div className="w-full border-t border-border" />
       <nav className="flex w-full flex-col gap-1">
         {libraryNav.map((item) => (
-          <NavItem
-            key={item.label}
-            {...item}
-            active={item.label === activeItem}
-          />
+          <NavItem key={item.label} {...item} />
         ))}
       </nav>
       <div className="w-full border-t border-border" />
-      <div className="flex w-full flex-col gap-2 pt-3">
-        <h3 className="text-sm font-semibold text-foreground">Subscriptions</h3>
-        {subscriptions.map((sub) => (
-          <Link
-            key={sub.id}
-            href="/channel"
-            className="flex w-full items-center gap-4 px-3 py-2"
-          >
-            <div className="relative size-6 shrink-0 overflow-hidden rounded-full">
-              <Image
-                src={sub.avatarUrl ?? "/images/avatar-user.png"}
-                alt={sub.name}
-                fill
-                sizes="24px"
-                className="object-cover"
-              />
-            </div>
-            <span className="flex-1 truncate text-sm text-foreground">
-              {sub.name}
-            </span>
-            {sub.isLive && (
-              <span className="size-1 shrink-0 rounded-full bg-[#3ea6ff]" />
-            )}
-          </Link>
-        ))}
-      </div>
+      <SidebarSubscriptions initialChannels={subscriptions} />
     </aside>
   );
 }
