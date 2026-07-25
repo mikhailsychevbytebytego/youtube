@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
+/midscene_run
 
 # next.js
 /.next/

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Cat, FolderHeart, Sparkles } from "lucide-react";
 import { useSubscriptions } from "@/hooks/use-subscriptions";
 import { SubscribeButton } from "@/components/subscribe-button";
@@ -26,32 +26,41 @@ export function SubscriptionsFeed({
   const [feedVideos, setFeedVideos] = useState<VideoWithChannel[]>([]);
   const [isFetchingVideos, setIsFetchingVideos] = useState(false);
 
-  const fetchFeed = useCallback(async (ids: string[]) => {
-    if (ids.length === 0) {
-      setFeedVideos([]);
-      return;
-    }
-    setIsFetchingVideos(true);
-    try {
-      const res = await fetch("/api/subscriptions/videos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channelIds: ids }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setFeedVideos(data.videos ?? []);
-      }
-    } catch (err) {
-      console.error("Failed to load feed videos:", err);
-    } finally {
-      setIsFetchingVideos(false);
-    }
-  }, []);
+  const idsKey = subscribedIds.join(",");
 
   useEffect(() => {
-    fetchFeed(subscribedIds);
-  }, [subscribedIds, fetchFeed]);
+    let ignore = false;
+    const ids = idsKey ? idsKey.split(",") : [];
+    if (ids.length === 0) {
+      Promise.resolve().then(() => {
+        if (!ignore) {
+          setFeedVideos([]);
+          setIsFetchingVideos(false);
+        }
+      });
+      return;
+    }
+    
+    fetch("/api/subscriptions/videos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ channelIds: ids }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!ignore && data) {
+          setFeedVideos(data.videos ?? []);
+        }
+      })
+      .catch((err) => console.error("Failed to load feed videos:", err))
+      .finally(() => {
+        if (!ignore) setIsFetchingVideos(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [idsKey]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -119,7 +128,7 @@ export function SubscriptionsFeed({
                 <Cat className="size-10 text-[#ff0000]" />
               </div>
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                Don't miss a single meow!
+                Don&apos;t miss a single meow!
               </h2>
               <p className="text-sm text-muted mb-8 max-w-md leading-relaxed">
                 Subscribe to your favorite cat channels to build your personal feed.
@@ -170,7 +179,7 @@ export function SubscriptionsFeed({
               <Cat className="size-12 text-muted mb-3" />
               <h3 className="text-lg font-semibold text-foreground">No videos found yet</h3>
               <p className="text-sm text-muted mt-1">
-                Your subscribed channels haven't uploaded any videos yet. Check back soon!
+                Your subscribed channels haven&apos;t uploaded any videos yet. Check back soon!
               </p>
             </div>
           ) : (
