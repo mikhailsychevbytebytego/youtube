@@ -46,17 +46,13 @@ function updateCache(ids: string[], channelsList?: Channel[]) {
 export function useSubscriptions() {
   const router = useRouter();
   const { data: session, isPending: isSessionPending } = authClient.useSession();
-  
-  // Start with empty arrays to ensure server HTML matches client hydration HTML
-  const [subscribedIds, setSubscribedIds] = useState<string[]>([]);
-  const [channels, setChannels] = useState<Channel[]>([]);
+
+  const [subscribedIds, setSubscribedIds] = useState<string[]>(getCachedSubscribedIds);
+  const [channels, setChannels] = useState<Channel[]>(getCachedChannels);
   const [loading, setLoading] = useState(true);
 
-  // Sync state when custom event fires or on initial client mount
+  // Sync state when custom event fires
   useEffect(() => {
-    setSubscribedIds(getCachedSubscribedIds());
-    setChannels(getCachedChannels());
-
     function handleSubsChange() {
       setSubscribedIds(getCachedSubscribedIds());
       setChannels(getCachedChannels());
@@ -96,10 +92,39 @@ export function useSubscriptions() {
   }, [session?.user, isSessionPending]);
 
   useEffect(() => {
+    let ignore = false;
     if (!isSessionPending) {
-      fetchSubscriptions();
+      if (!session?.user) {
+        Promise.resolve().then(() => {
+          if (!ignore) {
+            updateCache([], []);
+            setSubscribedIds([]);
+            setChannels([]);
+            setLoading(false);
+          }
+        });
+      } else {
+        fetch("/api/subscriptions")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (!ignore && data) {
+              const serverIds: string[] = data.channelIds ?? [];
+              const serverChannels: Channel[] = data.channels ?? [];
+              setSubscribedIds(serverIds);
+              setChannels(serverChannels);
+              updateCache(serverIds, serverChannels);
+            }
+          })
+          .catch((err) => console.error("Failed to load subscriptions:", err))
+          .finally(() => {
+            if (!ignore) setLoading(false);
+          });
+      }
     }
-  }, [fetchSubscriptions, isSessionPending]);
+    return () => {
+      ignore = true;
+    };
+  }, [session?.user, isSessionPending]);
 
   const isSubscribed = useCallback(
     (channelId: string) => {

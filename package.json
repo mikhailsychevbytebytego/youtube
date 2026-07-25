@@ -12,7 +12,10 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
     "db:admin": "tsx src/scripts/setup-admin.ts",
-    "db:mock": "tsx src/db/mock.ts"
+    "db:mock": "tsx src/db/mock.ts",
+    "test:ai": "playwright test",
+    "test:ai:headed": "playwright test --headed",
+    "test:ai:ui": "playwright test --ui"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
@@ -26,6 +29,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@midscene/web": "^1.10.7",
+    "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

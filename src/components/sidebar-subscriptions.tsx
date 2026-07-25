@@ -2,26 +2,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { ChevronDown, PawPrint } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useSubscriptions } from "@/hooks/use-subscriptions";
 import type { SidebarChannel } from "@/lib/queries";
 import type { Channel } from "@/db/schema";
 
+const emptySubscribe = () => () => {};
+function useIsMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
+
 export function SidebarSubscriptions({
   initialChannels = [],
 }: {
   initialChannels?: SidebarChannel[];
 }) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsMounted();
   const { data: session, isPending: isSessionPending } = authClient.useSession();
   const { channels: realSubs, subscribedIds } = useSubscriptions();
   const [showAll, setShowAll] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Map of all known channels (from initial server props or fetched real subs)
   const knownMap = new Map<string, SidebarChannel>();
