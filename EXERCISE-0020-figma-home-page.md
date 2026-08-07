@@ -16,6 +16,8 @@ The result should be a single image mock — verify it:
 
 ## Part 2: Convert the image mock to a real mock in Figma
 
+Before using the Figma agent, ensure you have registered a Figma account at [figma.com](https://figma.com) and activated the required subscription plan/access for agent operations.
+
 Use the Figma agent to convert the image into an actual Figma design, then have it fix any obvious issues (misaligned frames, missing auto-layout, garbled text, off colors). Verify:
 
 1. The design is built from real Figma layers — auto-layout frames, text nodes, and image fills — not just the pasted screenshot.
