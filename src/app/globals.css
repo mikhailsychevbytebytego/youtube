@@ -2,25 +2,38 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111111;
+
+  --brand: #ff1616;
+  --brand-tint: #fff0f0;
+  --ink: #111111;
+  --ink-soft: #333333;
+  --muted: #6b6b6b;
+  --soft: #f2f2f2;
+  --chip: #f1f1f1;
+  --line: #e3e3e3;
+  --link: #0069d9;
+  --scrim: #181818e6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-brand: var(--brand);
+  --color-brand-tint: var(--brand-tint);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-soft: var(--soft);
+  --color-chip: var(--chip);
+  --color-line: var(--line);
+  --color-link: var(--link);
+  --color-scrim: var(--scrim);
+  --font-sans: var(--font-roboto-condensed), "Apple Color Emoji",
+    "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

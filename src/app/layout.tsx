@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const robotoCondensed = Roboto_Condensed({
+  variable: "--font-roboto-condensed",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "MewTube",
-  description: "A toy YouTube reimplementation.",
+  title: "MeowTube",
+  description: "A toy YouTube reimplementation, for cats.",
 };
 
 export default function RootLayout({
@@ -23,11 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${robotoCondensed.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col font-sans">{children}</body>
     </html>
   );
 }
