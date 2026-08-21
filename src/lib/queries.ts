@@ -87,12 +87,72 @@ export async function getUpNextVideos(
   });
 }
 
+/** Small-catalog RRF constant; web-scale defaults (~60) would flatten top ranks. */
+const CLIP_RRF_K = 5;
+
 /**
- * Videos related to the current one, ranked by CLIP similarity: the smallest
- * same-modality cosine distance (title-title, description-description,
- * thumbnail-thumbnail) wins. LEAST ignores nulls, so partially embedded
- * videos still rank. Falls back to recency when the current video has no
- * embeddings.
+ * Assigns 1-based ranks (closest first) for one modality. Null / non-finite
+ * distances are left unranked so they don't contribute to RRF.
+ */
+function ranksForDistances(distances: (number | null)[]): (number | null)[] {
+  const ordered = distances
+    .map((distance, index) => ({ distance, index }))
+    .filter(
+      (row): row is { distance: number; index: number } =>
+        row.distance != null && Number.isFinite(row.distance),
+    )
+    .sort((a, b) => a.distance - b.distance);
+
+  const ranks = distances.map(() => null as number | null);
+  ordered.forEach((row, rankIndex) => {
+    ranks[row.index] = rankIndex + 1;
+  });
+  return ranks;
+}
+
+function toDistance(value: unknown): number | null {
+  if (value == null) return null;
+  const distance = Number(value);
+  return Number.isFinite(distance) ? distance : null;
+}
+
+function minRank(a: number | null, b: number | null): number | null {
+  if (a == null) return b;
+  if (b == null) return a;
+  return Math.min(a, b);
+}
+
+/**
+ * Fuse CLIP text ranks (best of title/description) with thumbnail ranks.
+ * Raw LEAST distances drown thumbnails because text-text scores sit much
+ * closer than image-image (and text-image) scores.
+ */
+function fuseTextAndThumbRanks<
+  T extends { dTitle: unknown; dDesc: unknown; dThumb: unknown },
+>(rows: T[], limit: number): T[] {
+  const titleRanks = ranksForDistances(rows.map((row) => toDistance(row.dTitle)));
+  const descRanks = ranksForDistances(rows.map((row) => toDistance(row.dDesc)));
+  const thumbRanks = ranksForDistances(rows.map((row) => toDistance(row.dThumb)));
+
+  const scored = rows.map((row, index) => {
+    const textRank = minRank(titleRanks[index], descRanks[index]);
+    let score = 0;
+    for (const rank of [textRank, thumbRanks[index]]) {
+      if (rank != null) score += 1 / (CLIP_RRF_K + rank);
+    }
+    return { row, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit).map(({ row }) => row);
+}
+
+/**
+ * Videos related to the current one, ranked by CLIP similarity. Compares
+ * same-modality pairs only (title-title, description-description,
+ * thumbnail-thumbnail), then fuses those ranks so a visual neighbor can
+ * outrank a weakly related title. Falls back to recency when the current
+ * video has no embeddings.
  */
 export async function getRelatedVideos(
   current: Video,
@@ -102,22 +162,21 @@ export async function getRelatedVideos(
     return getUpNextVideos(current, limit);
   }
 
-  const minDistance = sql<number>`least(
-    ${cosineDistance(videos.titleEmbedding, current.titleEmbedding)},
-    ${
-      current.descriptionEmbedding
-        ? cosineDistance(videos.descriptionEmbedding, current.descriptionEmbedding)
-        : sql`null`
-    },
-    ${
-      current.thumbnailEmbedding
-        ? cosineDistance(videos.thumbnailEmbedding, current.thumbnailEmbedding)
-        : sql`null`
-    }
-  )`;
-
   const rows = await db
-    .select({ video: videos, channel: channels })
+    .select({
+      video: videos,
+      channel: channels,
+      dTitle: cosineDistance(videos.titleEmbedding, current.titleEmbedding),
+      dDesc: current.descriptionEmbedding
+        ? cosineDistance(
+            videos.descriptionEmbedding,
+            current.descriptionEmbedding,
+          )
+        : sql`null`,
+      dThumb: current.thumbnailEmbedding
+        ? cosineDistance(videos.thumbnailEmbedding, current.thumbnailEmbedding)
+        : sql`null`,
+    })
     .from(videos)
     .innerJoin(channels, eq(videos.channelId, channels.id))
     .where(
@@ -127,11 +186,12 @@ export async function getRelatedVideos(
         eq(videos.isPublished, true),
         isNotNull(videos.titleEmbedding),
       ),
-    )
-    .orderBy(minDistance)
-    .limit(limit);
+    );
 
-  return rows.map(({ video, channel }) => ({ ...video, channel }));
+  return fuseTextAndThumbRanks(rows, limit).map(({ video, channel }) => ({
+    ...video,
+    channel,
+  }));
 }
 
 export async function getChannelShorts(
@@ -202,41 +262,6 @@ export const getChannelWithContent = cache(
   },
 );
 
-/** Small-catalog RRF constant; web-scale defaults (~60) would flatten top ranks. */
-const SEARCH_RRF_K = 5;
-
-/**
- * Assigns 1-based ranks (closest first) for one modality. Null / non-finite
- * distances are left unranked so they don't contribute to RRF.
- */
-function ranksForDistances(distances: (number | null)[]): (number | null)[] {
-  const ordered = distances
-    .map((distance, index) => ({ distance, index }))
-    .filter(
-      (row): row is { distance: number; index: number } =>
-        row.distance != null && Number.isFinite(row.distance),
-    )
-    .sort((a, b) => a.distance - b.distance);
-
-  const ranks = distances.map(() => null as number | null);
-  ordered.forEach((row, rankIndex) => {
-    ranks[row.index] = rankIndex + 1;
-  });
-  return ranks;
-}
-
-function toDistance(value: unknown): number | null {
-  if (value == null) return null;
-  const distance = Number(value);
-  return Number.isFinite(distance) ? distance : null;
-}
-
-function minRank(a: number | null, b: number | null): number | null {
-  if (a == null) return b;
-  if (b == null) return a;
-  return Math.min(a, b);
-}
-
 /**
  * Semantic search: CLIP text-text distances (~0.2) and text-image distances
  * (~0.8) live on different scales, so LEAST of the raw cosine distances
@@ -262,27 +287,10 @@ export async function searchVideos(
     // embeddings" marker.
     .where(and(eq(videos.isPublished, true), isNotNull(videos.titleEmbedding)));
 
-  const titleRanks = ranksForDistances(rows.map((row) => toDistance(row.dTitle)));
-  const descRanks = ranksForDistances(rows.map((row) => toDistance(row.dDesc)));
-  const thumbRanks = ranksForDistances(rows.map((row) => toDistance(row.dThumb)));
-
-  // Title and description are the same CLIP text space; taking both as
-  // separate RRF lists double-counts text and drowns thumbnails. Fold them
-  // into one text rank (best of the two), then fuse with the image rank.
-  const scored = rows.map((row, index) => {
-    const textRank = minRank(titleRanks[index], descRanks[index]);
-    let score = 0;
-    for (const rank of [textRank, thumbRanks[index]]) {
-      if (rank != null) score += 1 / (SEARCH_RRF_K + rank);
-    }
-    return { row, score };
-  });
-
-  scored.sort((a, b) => b.score - a.score);
-
-  return scored
-    .slice(0, limit)
-    .map(({ row }) => ({ ...row.video, channel: row.channel }));
+  return fuseTextAndThumbRanks(rows, limit).map(({ video, channel }) => ({
+    ...video,
+    channel,
+  }));
 }
 
 /**
