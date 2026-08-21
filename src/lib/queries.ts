@@ -155,33 +155,87 @@ export const getChannelWithContent = cache(
   },
 );
 
+/** Small-catalog RRF constant; web-scale defaults (~60) would flatten top ranks. */
+const SEARCH_RRF_K = 5;
+
 /**
- * Semantic search: ranks videos by the smallest cosine distance between the
- * query embedding and any of the three CLIP embeddings (title, description,
- * thumbnail). LEAST ignores nulls, so videos missing an embedding still rank
- * on the ones they have.
+ * Assigns 1-based ranks (closest first) for one modality. Null / non-finite
+ * distances are left unranked so they don't contribute to RRF.
+ */
+function ranksForDistances(distances: (number | null)[]): (number | null)[] {
+  const ordered = distances
+    .map((distance, index) => ({ distance, index }))
+    .filter(
+      (row): row is { distance: number; index: number } =>
+        row.distance != null && Number.isFinite(row.distance),
+    )
+    .sort((a, b) => a.distance - b.distance);
+
+  const ranks = distances.map(() => null as number | null);
+  ordered.forEach((row, rankIndex) => {
+    ranks[row.index] = rankIndex + 1;
+  });
+  return ranks;
+}
+
+function toDistance(value: unknown): number | null {
+  if (value == null) return null;
+  const distance = Number(value);
+  return Number.isFinite(distance) ? distance : null;
+}
+
+function minRank(a: number | null, b: number | null): number | null {
+  if (a == null) return b;
+  if (b == null) return a;
+  return Math.min(a, b);
+}
+
+/**
+ * Semantic search: CLIP text-text distances (~0.2) and text-image distances
+ * (~0.8) live on different scales, so LEAST of the raw cosine distances
+ * always ignores thumbnails. Rank text (best of title/description) and
+ * thumbnail separately, then fuse with reciprocal rank fusion so a visual
+ * hit can outrank a weakly related title. Null embeddings are skipped.
  */
 export async function searchVideos(
   queryEmbedding: number[],
   limit = 12,
 ): Promise<VideoWithChannel[]> {
-  const minDistance = sql<number>`least(
-    ${cosineDistance(videos.titleEmbedding, queryEmbedding)},
-    ${cosineDistance(videos.descriptionEmbedding, queryEmbedding)},
-    ${cosineDistance(videos.thumbnailEmbedding, queryEmbedding)}
-  )`;
-
   const rows = await db
-    .select({ video: videos, channel: channels })
+    .select({
+      video: videos,
+      channel: channels,
+      dTitle: cosineDistance(videos.titleEmbedding, queryEmbedding),
+      dDesc: cosineDistance(videos.descriptionEmbedding, queryEmbedding),
+      dThumb: cosineDistance(videos.thumbnailEmbedding, queryEmbedding),
+    })
     .from(videos)
     .innerJoin(channels, eq(videos.channelId, channels.id))
     // The title is always embedded first, so it doubles as the "has any
     // embeddings" marker.
-    .where(and(eq(videos.isPublished, true), isNotNull(videos.titleEmbedding)))
-    .orderBy(minDistance)
-    .limit(limit);
+    .where(and(eq(videos.isPublished, true), isNotNull(videos.titleEmbedding)));
 
-  return rows.map(({ video, channel }) => ({ ...video, channel }));
+  const titleRanks = ranksForDistances(rows.map((row) => toDistance(row.dTitle)));
+  const descRanks = ranksForDistances(rows.map((row) => toDistance(row.dDesc)));
+  const thumbRanks = ranksForDistances(rows.map((row) => toDistance(row.dThumb)));
+
+  // Title and description are the same CLIP text space; taking both as
+  // separate RRF lists double-counts text and drowns thumbnails. Fold them
+  // into one text rank (best of the two), then fuse with the image rank.
+  const scored = rows.map((row, index) => {
+    const textRank = minRank(titleRanks[index], descRanks[index]);
+    let score = 0;
+    for (const rank of [textRank, thumbRanks[index]]) {
+      if (rank != null) score += 1 / (SEARCH_RRF_K + rank);
+    }
+    return { row, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored
+    .slice(0, limit)
+    .map(({ row }) => ({ ...row.video, channel: row.channel }));
 }
 
 /**
