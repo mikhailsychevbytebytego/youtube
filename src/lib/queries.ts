@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { and, desc, eq, gt, ne } from "drizzle-orm";
+import { and, desc, eq, gt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { channels, videos, type Channel, type Video } from "@/db/schema";
 
@@ -76,6 +76,34 @@ export async function getUpNextVideos(
     limit,
     with: { channel: true },
   });
+}
+
+/**
+ * Lexical search over title + description using Postgres `tsvector`.
+ * Title tokens are weighted A so they outrank description matches; rank
+ * with `ts_rank` and `websearch_to_tsquery` so queries like "space cats"
+ * don't need special syntax.
+ */
+export async function searchVideos(
+  query: string,
+  limit = 12,
+): Promise<VideoWithChannel[]> {
+  const document = sql`(
+    setweight(to_tsvector('english', ${videos.title}), 'A') ||
+    setweight(to_tsvector('english', coalesce(${videos.description}, '')), 'B')
+  )`;
+  const tsQuery = sql`websearch_to_tsquery('english', ${query})`;
+  const rank = sql<number>`ts_rank(${document}, ${tsQuery})`;
+
+  const rows = await db
+    .select({ video: videos, channel: channels })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(and(eq(videos.isPublished, true), sql`${document} @@ ${tsQuery}`))
+    .orderBy(desc(rank))
+    .limit(limit);
+
+  return rows.map(({ video, channel }) => ({ ...video, channel }));
 }
 
 export async function getChannelShorts(
