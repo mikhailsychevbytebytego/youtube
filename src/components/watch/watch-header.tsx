@@ -7,9 +7,11 @@ import type { Theme } from "@/lib/theme";
 export function WatchHeader({
   theme,
   searchPlaceholder = "Search cats...",
+  query,
 }: {
   theme: Theme;
   searchPlaceholder?: string;
+  query?: string;
 }) {
   return (
     <header className="flex h-14 w-full shrink-0 items-center justify-between px-6">
@@ -29,19 +31,25 @@ export function WatchHeader({
       </div>
 
       <div className="flex w-[720px] items-center gap-3">
-        <div className="flex h-10 flex-1 items-center overflow-hidden rounded-full border border-border">
+        <form
+          action="/search"
+          className="flex h-10 flex-1 items-center overflow-hidden rounded-full border border-border"
+        >
           <input
             type="text"
+            name="q"
+            defaultValue={query}
             placeholder={searchPlaceholder}
             className="h-full min-w-0 flex-1 pl-4 text-base text-foreground outline-none placeholder:text-muted"
           />
           <button
+            type="submit"
             aria-label="Search"
             className="flex h-full w-16 shrink-0 items-center justify-center border-l border-border bg-surface"
           >
             <Search className="size-5 text-foreground" />
           </button>
-        </div>
+        </form>
         <button
           aria-label="Search with voice"
           className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface"
