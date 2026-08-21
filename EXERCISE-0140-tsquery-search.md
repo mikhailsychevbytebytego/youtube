@@ -6,7 +6,7 @@ Prerequisite: a populated `videos` table with titles and descriptions (the Cloud
 
 Ask Agent:
 
-> Lets implement search with postgres tsvector / tsquery instead of CLIP. Title and description get turned into a tsvector in the query, match with websearch_to_tsquery, rank with ts_rank, and wire the header box to a real /search page. No new db columns.
+> Lets implement search with postgres tsquery. Title and description get turned into a tsvector in the query, match with websearch_to_tsquery, rank with ts_rank, and wire the header box to a real /search page.
 
 The agent should end up doing roughly the following — verify each point when it's done:
 
