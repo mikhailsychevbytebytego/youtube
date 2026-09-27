@@ -1,6 +1,6 @@
 # Exercise: Build an admin CRUD interface with an AI agent
 
-Continue from [EXERCISE-0050](EXERCISE-0050-supabase-drizzle.md): the pages read from Supabase, but the only way to change data is the seed script or the dashboard. Have Agent build a proper admin section on top of the same Drizzle setup.
+Continue from [EXERCISE-0070](EXERCISE-0070-supabase-drizzle.md): the pages read from Supabase, but the only way to change data is the seed script or the dashboard. Have Agent build a proper admin section on top of the same Drizzle setup.
 
 Ask Agent:
 
