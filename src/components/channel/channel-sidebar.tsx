@@ -59,14 +59,14 @@ function NavItem({
     <Link
       href={href}
       className={`flex w-full items-center gap-5 rounded-[10px] px-3 py-2.5 ${
-        active ? "bg-[#f2f2f2]" : ""
+        active ? "bg-surface" : ""
       }`}
     >
       <Icon
-        className={`size-6 shrink-0 ${active ? "text-[#ff0000]" : "text-[#0f0f0f]"}`}
+        className={`size-6 shrink-0 ${active ? "text-[#ff0000]" : "text-foreground"}`}
       />
       <span
-        className={`flex-1 text-sm text-[#0f0f0f] ${
+        className={`flex-1 text-sm text-foreground ${
           active ? "font-semibold" : "font-normal"
         }`}
       >
@@ -84,15 +84,15 @@ export function ChannelSidebar() {
           <NavItem key={item.label} {...item} />
         ))}
       </nav>
-      <div className="w-full border-t border-[#e5e5e5]" />
+      <div className="w-full border-t border-border" />
       <nav className="flex w-full flex-col gap-1">
         {libraryNav.map((item) => (
           <NavItem key={item.label} {...item} />
         ))}
       </nav>
-      <div className="w-full border-t border-[#e5e5e5]" />
+      <div className="w-full border-t border-border" />
       <div className="flex w-full flex-col gap-2">
-        <h3 className="px-3 text-xs font-bold text-[#0f0f0f]">Subscriptions</h3>
+        <h3 className="px-3 text-xs font-bold text-foreground">Subscriptions</h3>
         {channelSubscriptions.map((sub) => (
           <Link
             key={sub.id}
@@ -108,7 +108,7 @@ export function ChannelSidebar() {
                 className="object-cover"
               />
             </div>
-            <span className="flex-1 truncate text-sm text-[#0f0f0f]">
+            <span className="flex-1 truncate text-sm text-foreground">
               {sub.name}
             </span>
             {sub.hasNew && (
@@ -117,13 +117,13 @@ export function ChannelSidebar() {
           </Link>
         ))}
         <button className="flex items-center gap-3 pl-3">
-          <ChevronDown className="size-5 text-black" />
-          <span className="text-sm text-black">Show 8 more</span>
+          <ChevronDown className="size-5 text-foreground" />
+          <span className="text-sm text-foreground">Show 8 more</span>
         </button>
       </div>
-      <div className="w-full border-t border-[#e5e5e5]" />
+      <div className="w-full border-t border-border" />
       <div className="flex w-full flex-col gap-2">
-        <h3 className="px-3 text-xs font-bold text-[#0f0f0f]">Explore</h3>
+        <h3 className="px-3 text-xs font-bold text-foreground">Explore</h3>
         <nav className="flex w-full flex-col gap-1">
           {exploreNav.map((item) => (
             <NavItem key={item.label} {...item} />

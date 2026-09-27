@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { getTheme } from "@/lib/get-theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,15 +18,19 @@ export const metadata: Metadata = {
   description: "A toy YouTube reimplementation.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const theme = await getTheme();
+
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased ${
+        theme === "dark" ? "dark" : ""
+      }`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

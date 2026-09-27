@@ -12,9 +12,9 @@ function UpNextList() {
   return (
     <div className="flex w-full flex-col gap-3">
       <div className="flex w-full items-center justify-between">
-        <h2 className="text-base font-semibold text-black">Up next</h2>
+        <h2 className="text-base font-semibold text-foreground">Up next</h2>
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-black">Autoplay</span>
+          <span className="text-xs font-semibold text-foreground">Autoplay</span>
           <span className="relative flex h-5 w-9 items-center rounded-full bg-[#ff0000]">
             <span className="absolute right-0.5 size-4 rounded-full bg-white" />
           </span>
@@ -45,10 +45,10 @@ function UpNextList() {
             )}
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <h3 className="text-sm font-semibold text-[#0f0f0f]">
+            <h3 className="text-sm font-semibold text-foreground">
               {video.title}
             </h3>
-            <div className="flex flex-col gap-0.5 text-xs text-[#606060]">
+            <div className="flex flex-col gap-0.5 text-xs text-muted">
               <p>{video.channel}</p>
               <p>{video.meta}</p>
             </div>
@@ -77,7 +77,7 @@ function ShortsShelf({
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           {icon}
-          <h2 className="text-base font-bold text-black">{title}</h2>
+          <h2 className="text-base font-bold text-foreground">{title}</h2>
         </div>
         <a href="#" className="text-sm font-semibold text-[#ff0000]">
           View all
@@ -108,9 +108,9 @@ function ShortsShelf({
         {showScrollButton && (
           <button
             aria-label="Scroll right"
-            className="absolute top-1/2 -right-4 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border border-[#e5e5e5] bg-white drop-shadow-[0px_2px_2px_rgba(0,0,0,0.1)]"
+            className="absolute top-1/2 -right-4 flex size-8 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background drop-shadow-[0px_2px_2px_rgba(0,0,0,0.1)]"
           >
-            <ChevronRight className="size-4 text-black" />
+            <ChevronRight className="size-4 text-foreground" />
           </button>
         )}
       </div>
@@ -124,7 +124,7 @@ export function WatchRightRail() {
       <UpNextList />
       <ShortsShelf
         title="Kittens"
-        icon={<PawPrint className="size-4 text-black" />}
+        icon={<PawPrint className="size-4 text-foreground" />}
         shorts={kittenShorts}
         height={160}
         showScrollButton

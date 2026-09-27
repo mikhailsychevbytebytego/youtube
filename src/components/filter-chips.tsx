@@ -8,8 +8,8 @@ export function FilterChips() {
           key={chip}
           className={`rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap ${
             i === 0
-              ? "bg-[#0f0f0f] text-white"
-              : "border border-[#e5e5e5] bg-[#f2f2f2] text-[#0f0f0f]"
+              ? "bg-inverted text-inverted-fg"
+              : "border border-border bg-surface text-foreground"
           }`}
         >
           {chip}

@@ -36,16 +36,16 @@ export function ChannelHero() {
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             <div className="flex flex-col gap-1">
-              <h1 className="text-4xl font-bold text-[#0f0f0f]">
+              <h1 className="text-4xl font-bold text-foreground">
                 {channel.name}
               </h1>
-              <p className="text-sm text-[#606060]">{channel.handle}</p>
+              <p className="text-sm text-muted">{channel.handle}</p>
             </div>
             <button className="flex items-center gap-1 self-start">
-              <span className="text-sm text-[#606060]">
+              <span className="text-sm text-muted">
                 {channel.description}
               </span>
-              <ChevronRight className="size-4 text-[#606060]" />
+              <ChevronRight className="size-4 text-muted" />
             </button>
             <button className="flex items-center gap-3 self-start rounded-3xl bg-[#ff0000] px-6 py-3">
               <PawPrint className="size-5 text-white" />
@@ -60,15 +60,15 @@ export function ChannelHero() {
               key={tab}
               className={`pb-3 text-base ${
                 i === 0
-                  ? "border-b-[3px] border-[#0f0f0f] font-bold text-[#0f0f0f]"
-                  : "font-medium text-[#606060]"
+                  ? "border-b-[3px] border-foreground font-bold text-foreground"
+                  : "font-medium text-muted"
               }`}
             >
               {tab}
             </button>
           ))}
           <button aria-label="Search channel">
-            <Search className="size-5 text-[#606060]" />
+            <Search className="size-5 text-muted" />
           </button>
         </div>
       </div>

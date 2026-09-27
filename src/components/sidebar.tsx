@@ -47,12 +47,12 @@ function NavItem({
     <Link
       href={href}
       className={`flex w-full items-center gap-5 rounded-[10px] px-3 py-2.5 ${
-        active ? "bg-[#f2f2f2]" : ""
+        active ? "bg-surface" : ""
       }`}
     >
-      <Icon className="size-6 shrink-0 text-[#0f0f0f]" />
+      <Icon className="size-6 shrink-0 text-foreground" />
       <span
-        className={`flex-1 text-sm text-[#0f0f0f] ${
+        className={`flex-1 text-sm text-foreground ${
           active ? "font-semibold" : "font-normal"
         }`}
       >
@@ -70,15 +70,15 @@ export function Sidebar() {
           <NavItem key={item.label} {...item} />
         ))}
       </nav>
-      <div className="w-full border-t border-[#e5e5e5]" />
+      <div className="w-full border-t border-border" />
       <nav className="flex w-full flex-col gap-1">
         {libraryNav.map((item) => (
           <NavItem key={item.label} {...item} />
         ))}
       </nav>
-      <div className="w-full border-t border-[#e5e5e5]" />
+      <div className="w-full border-t border-border" />
       <div className="flex w-full flex-col gap-2 pt-3">
-        <h3 className="text-sm font-semibold text-[#0f0f0f]">Subscriptions</h3>
+        <h3 className="text-sm font-semibold text-foreground">Subscriptions</h3>
         {subscriptions.map((sub) => (
           <Link
             key={sub.id}
@@ -94,7 +94,7 @@ export function Sidebar() {
                 className="object-cover"
               />
             </div>
-            <span className="flex-1 truncate text-sm text-[#0f0f0f]">
+            <span className="flex-1 truncate text-sm text-foreground">
               {sub.name}
             </span>
             {sub.isLive && (

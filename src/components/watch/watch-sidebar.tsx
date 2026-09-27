@@ -48,15 +48,15 @@ function NavItem({
     <Link
       href={href}
       className={`flex w-full items-center gap-6 rounded-[10px] px-3 py-2.5 ${
-        active ? "bg-[#f2f2f2]" : ""
+        active ? "bg-surface" : ""
       }`}
     >
       <Icon
-        className={`size-6 shrink-0 ${active ? "text-[#ff0000]" : "text-[#0f0f0f]"}`}
+        className={`size-6 shrink-0 ${active ? "text-[#ff0000]" : "text-foreground"}`}
       />
       <span
         className={`text-sm ${
-          active ? "font-semibold text-[#ff0000]" : "font-normal text-[#0f0f0f]"
+          active ? "font-semibold text-[#ff0000]" : "font-normal text-foreground"
         }`}
       >
         {label}
@@ -71,13 +71,13 @@ export function WatchSidebar() {
       {mainNav.map((item) => (
         <NavItem key={item.label} {...item} />
       ))}
-      <div className="w-full border-t border-[#e5e5e5]" />
+      <div className="w-full border-t border-border" />
       {libraryNav.map((item) => (
         <NavItem key={item.label} {...item} />
       ))}
-      <div className="w-full border-t border-[#e5e5e5]" />
+      <div className="w-full border-t border-border" />
       <div className="flex w-full flex-col gap-2 pt-3 pl-3">
-        <h3 className="text-sm font-semibold text-black">Subscriptions</h3>
+        <h3 className="text-sm font-semibold text-foreground">Subscriptions</h3>
         {watchSubscriptions.map((sub) => (
           <Link
             key={sub.id}
@@ -93,7 +93,7 @@ export function WatchSidebar() {
                 className="object-cover"
               />
             </div>
-            <span className="flex-1 truncate text-sm text-[#0f0f0f]">
+            <span className="flex-1 truncate text-sm text-foreground">
               {sub.name}
             </span>
             {sub.hasNew && (
@@ -102,8 +102,8 @@ export function WatchSidebar() {
           </Link>
         ))}
         <button className="flex w-full items-center gap-4">
-          <ChevronDown className="size-6 shrink-0 text-black" />
-          <span className="text-sm text-black">Show 12 more</span>
+          <ChevronDown className="size-6 shrink-0 text-foreground" />
+          <span className="text-sm text-foreground">Show 12 more</span>
         </button>
       </div>
     </aside>

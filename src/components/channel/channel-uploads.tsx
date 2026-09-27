@@ -23,12 +23,12 @@ export function FeaturedVideo() {
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <Link href="/watch">
-          <h2 className="text-xl font-bold text-[#0f0f0f]">
+          <h2 className="text-xl font-bold text-foreground">
             {featuredVideo.title}
           </h2>
         </Link>
-        <p className="text-sm text-[#606060]">{featuredVideo.meta}</p>
-        <div className="text-sm leading-normal text-[#606060]">
+        <p className="text-sm text-muted">{featuredVideo.meta}</p>
+        <div className="text-sm leading-normal text-muted">
           <p>{featuredVideo.description}</p>
           <p>...more</p>
         </div>
@@ -41,10 +41,10 @@ export function ChannelUploads() {
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex items-center gap-2">
-        <h2 className="text-xl font-bold text-black">Uploads</h2>
+        <h2 className="text-xl font-bold text-foreground">Uploads</h2>
         <button className="flex items-center gap-2">
-          <Play className="size-5 fill-black text-black" />
-          <span className="text-xs font-semibold text-black">Play all</span>
+          <Play className="size-5 fill-black text-foreground" />
+          <span className="text-xs font-semibold text-foreground">Play all</span>
         </button>
       </div>
       <div className="relative flex w-full items-start gap-4">
@@ -67,10 +67,10 @@ export function ChannelUploads() {
               </span>
             </div>
             <div className="flex flex-col gap-1">
-              <h3 className="line-clamp-2 text-base leading-[1.4] font-semibold text-[#0f0f0f]">
+              <h3 className="line-clamp-2 text-base leading-[1.4] font-semibold text-foreground">
                 {video.title}
               </h3>
-              <div className="flex flex-col text-sm text-[#606060]">
+              <div className="flex flex-col text-sm text-muted">
                 <p>The Daily Purr</p>
                 <p>{video.meta}</p>
               </div>
@@ -79,9 +79,9 @@ export function ChannelUploads() {
         ))}
         <button
           aria-label="Scroll uploads"
-          className="absolute top-[calc(50%-40px)] -right-5 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white drop-shadow-[0px_4px_4px_rgba(0,0,0,0.1)]"
+          className="absolute top-[calc(50%-40px)] -right-5 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background drop-shadow-[0px_4px_4px_rgba(0,0,0,0.1)]"
         >
-          <ChevronRight className="size-5 text-black" />
+          <ChevronRight className="size-5 text-foreground" />
         </button>
       </div>
     </div>

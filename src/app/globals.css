@@ -1,22 +1,52 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f0f0f;
+  --muted: #606060;
+  --border: #e5e5e5;
+  --surface: #f2f2f2;
+  --surface-hover: #f8f8f8;
+  --inverted: #0f0f0f;
+  --inverted-fg: #ffffff;
+  --inverted-hover: #272727;
+  --menu: #ffffff;
+  --menu-border: #e5e5e5;
+  --link: #065fd4;
+}
+
+.dark {
+  --background: #0f0f0f;
+  --foreground: #f1f1f1;
+  --muted: #aaaaaa;
+  --border: #303030;
+  --surface: #272727;
+  --surface-hover: #3f3f3f;
+  --inverted: #f1f1f1;
+  --inverted-fg: #0f0f0f;
+  --inverted-hover: #d9d9d9;
+  --menu: #282828;
+  --menu-border: #3f3f3f;
+  --link: #3ea6ff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-inverted: var(--inverted);
+  --color-inverted-fg: var(--inverted-fg);
+  --color-inverted-hover: var(--inverted-hover);
+  --color-menu: var(--menu);
+  --color-menu-border: var(--menu-border);
+  --color-link: var(--link);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

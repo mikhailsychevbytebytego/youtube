@@ -32,12 +32,12 @@ export function VideoCard({ video }: { video: Video }) {
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <Link href="/watch">
-            <h3 className="line-clamp-2 text-base font-semibold text-[#0f0f0f]">
+            <h3 className="line-clamp-2 text-base font-semibold text-foreground">
               {video.title}
             </h3>
           </Link>
-          <div className="flex flex-col gap-0.5 text-sm text-[#606060]">
-            <Link href="/channel" className="hover:text-[#0f0f0f]">
+          <div className="flex flex-col gap-0.5 text-sm text-muted">
+            <Link href="/channel" className="hover:text-foreground">
               {video.channel}
             </Link>
             <p>

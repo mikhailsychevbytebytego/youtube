@@ -8,15 +8,18 @@ import {
 } from "@/components/channel/channel-uploads";
 import { ChannelShorts } from "@/components/channel/channel-shorts";
 import { channel } from "@/lib/channel-data";
+import { getTheme } from "@/lib/get-theme";
 
 export const metadata: Metadata = {
   title: `${channel.name} - MewTube`,
 };
 
-export default function ChannelPage() {
+export default async function ChannelPage() {
+  const theme = await getTheme();
+
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <WatchHeader searchPlaceholder="Search" />
+    <div className="flex min-h-screen flex-col bg-background">
+      <WatchHeader theme={theme} searchPlaceholder="Search" />
       <div className="flex flex-1 items-start">
         <ChannelSidebar />
         <main className="flex min-w-0 flex-1 flex-col">

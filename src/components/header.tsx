@@ -1,50 +1,53 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BellDot, CircleX, Menu, Mic, Play, Search } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import type { Theme } from "@/lib/theme";
 
-export function Header() {
+export function Header({ theme }: { theme: Theme }) {
   return (
     <header className="flex h-14 w-full shrink-0 items-center justify-between px-6">
       <div className="flex items-center gap-6">
         <button aria-label="Menu">
-          <Menu className="size-6 text-[#0f0f0f]" />
+          <Menu className="size-6 text-foreground" />
         </button>
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-6 w-[34px] items-center justify-center rounded-md bg-[#ff0000]">
             <Play className="size-3 fill-white text-white" />
           </div>
-          <span className="text-xl font-bold text-[#0f0f0f]">MeowTube</span>
+          <span className="text-xl font-bold text-foreground">MeowTube</span>
         </Link>
       </div>
 
       <div className="flex w-[720px] items-center gap-3">
-        <div className="flex h-10 flex-1 items-center overflow-hidden rounded-full border border-[#e5e5e5]">
+        <div className="flex h-10 flex-1 items-center overflow-hidden rounded-full border border-border">
           <input
             type="text"
             placeholder="Search cats..."
-            className="h-full min-w-0 flex-1 px-4 text-base text-[#0f0f0f] outline-none placeholder:text-[#606060]"
+            className="h-full min-w-0 flex-1 px-4 text-base text-foreground outline-none placeholder:text-muted"
           />
           <button
             aria-label="Search"
-            className="flex h-full w-16 shrink-0 items-center justify-center border-l border-[#e5e5e5] bg-[#f2f2f2]"
+            className="flex h-full w-16 shrink-0 items-center justify-center border-l border-border bg-surface"
           >
-            <Search className="size-5 text-[#0f0f0f]" />
+            <Search className="size-5 text-foreground" />
           </button>
         </div>
         <button
           aria-label="Search with voice"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#f2f2f2]"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface"
         >
-          <Mic className="size-5 text-[#0f0f0f]" />
+          <Mic className="size-5 text-foreground" />
         </button>
       </div>
 
       <div className="flex items-center gap-5">
+        <ThemeToggle initialTheme={theme} />
         <button aria-label="Create">
-          <CircleX className="size-6 text-[#0f0f0f]" />
+          <CircleX className="size-6 text-foreground" />
         </button>
         <button aria-label="Notifications">
-          <BellDot className="size-6 text-[#0f0f0f]" />
+          <BellDot className="size-6 text-foreground" />
         </button>
         <div className="relative size-8 overflow-hidden rounded-full">
           <Image

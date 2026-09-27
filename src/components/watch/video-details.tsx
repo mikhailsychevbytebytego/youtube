@@ -15,7 +15,7 @@ import { watchComment, watchVideo } from "@/lib/watch-data";
 export function VideoDetails() {
   return (
     <div className="flex w-full flex-col gap-3">
-      <h1 className="text-xl font-bold text-[#0f0f0f]">{watchVideo.title}</h1>
+      <h1 className="text-xl font-bold text-foreground">{watchVideo.title}</h1>
 
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-3">
@@ -33,44 +33,44 @@ export function VideoDetails() {
           </Link>
           <div className="flex flex-col gap-0.5">
             <Link href="/channel" className="flex items-center gap-1">
-              <span className="text-base font-semibold text-black">
+              <span className="text-base font-semibold text-foreground">
                 {watchVideo.channel}
               </span>
-              <CircleCheck className="size-3 text-[#606060]" />
+              <CircleCheck className="size-3 text-muted" />
             </Link>
-            <span className="text-xs text-[#606060]">
+            <span className="text-xs text-muted">
               {watchVideo.subscribers}
             </span>
           </div>
-          <button className="flex items-center gap-2 rounded-full bg-[#f2f2f2] px-4 py-2">
-            <PawPrint className="size-[18px] text-black" />
-            <span className="text-sm font-semibold text-black">
+          <button className="flex items-center gap-2 rounded-full bg-surface px-4 py-2">
+            <PawPrint className="size-[18px] text-foreground" />
+            <span className="text-sm font-semibold text-foreground">
               Purrscribed
             </span>
-            <ChevronDown className="size-4 text-black" />
+            <ChevronDown className="size-4 text-foreground" />
           </button>
         </div>
 
         <div className="flex items-start gap-2">
-          <div className="flex overflow-hidden rounded-full bg-[#f2f2f2]">
-            <button className="flex items-center gap-2 border-r border-[#e5e5e5] px-3 py-2">
-              <ThumbsUp className="size-5 text-black" />
-              <span className="text-sm font-semibold text-black">
+          <div className="flex overflow-hidden rounded-full bg-surface">
+            <button className="flex items-center gap-2 border-r border-border px-3 py-2">
+              <ThumbsUp className="size-5 text-foreground" />
+              <span className="text-sm font-semibold text-foreground">
                 {watchVideo.likes}
               </span>
             </button>
             <button aria-label="Dislike" className="flex items-center px-3 py-2">
-              <ThumbsDown className="size-5 text-black" />
+              <ThumbsDown className="size-5 text-foreground" />
             </button>
           </div>
-          <button className="flex items-center gap-2 rounded-full bg-[#f2f2f2] px-4 py-2">
-            <Share className="size-5 text-[#0f0f0f]" />
-            <span className="text-sm font-medium text-[#0f0f0f]">Share</span>
+          <button className="flex items-center gap-2 rounded-full bg-surface px-4 py-2">
+            <Share className="size-5 text-foreground" />
+            <span className="text-sm font-medium text-foreground">Share</span>
           </button>
         </div>
       </div>
 
-      <div className="flex w-full flex-col gap-1 rounded-xl bg-[#f2f2f2] p-3 text-sm text-black">
+      <div className="flex w-full flex-col gap-1 rounded-xl bg-surface p-3 text-sm text-foreground">
         <div className="flex items-center gap-2">
           <span className="font-semibold">{watchVideo.views}</span>
           <span className="font-semibold">{watchVideo.age}</span>
@@ -82,12 +82,12 @@ export function VideoDetails() {
 
       <div className="flex w-full flex-col gap-6 pt-3">
         <div className="flex items-center gap-8">
-          <p className="text-xl font-bold text-black">
-            Comments <span className="font-normal text-[#606060]">2.6K</span>
+          <p className="text-xl font-bold text-foreground">
+            Comments <span className="font-normal text-muted">2.6K</span>
           </p>
           <button className="flex items-center gap-2">
-            <ArrowUpNarrowWide className="size-6 text-black" />
-            <span className="text-xs font-semibold text-black">Sort by</span>
+            <ArrowUpNarrowWide className="size-6 text-foreground" />
+            <span className="text-xs font-semibold text-foreground">Sort by</span>
           </button>
         </div>
 
@@ -101,8 +101,8 @@ export function VideoDetails() {
               className="object-cover"
             />
           </div>
-          <div className="flex-1 border-b border-[#e5e5e5] pb-2">
-            <span className="text-sm text-[#606060]">Add a comment...</span>
+          <div className="flex-1 border-b border-border pb-2">
+            <span className="text-sm text-muted">Add a comment...</span>
           </div>
         </div>
 
@@ -118,28 +118,28 @@ export function VideoDetails() {
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-[13px] font-semibold text-black">
+              <span className="text-[13px] font-semibold text-foreground">
                 {watchComment.author}
               </span>
-              <span className="text-xs text-[#606060]">{watchComment.age}</span>
+              <span className="text-xs text-muted">{watchComment.age}</span>
             </div>
-            <p className="text-sm text-black">{watchComment.text}</p>
+            <p className="text-sm text-foreground">{watchComment.text}</p>
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
-                <ThumbsUp className="size-4 text-black" />
-                <span className="text-xs text-[#606060]">
+                <ThumbsUp className="size-4 text-foreground" />
+                <span className="text-xs text-muted">
                   {watchComment.likes}
                 </span>
               </span>
-              <ThumbsDown className="size-4 text-black" />
-              <span className="text-xs font-semibold text-black">Reply</span>
+              <ThumbsDown className="size-4 text-foreground" />
+              <span className="text-xs font-semibold text-foreground">Reply</span>
             </div>
           </div>
           <button
             aria-label="More options"
             className="flex size-10 shrink-0 items-center justify-center rounded-full"
           >
-            <EllipsisVertical className="size-4 text-black" />
+            <EllipsisVertical className="size-4 text-foreground" />
           </button>
         </div>
       </div>

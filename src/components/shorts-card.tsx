@@ -15,10 +15,10 @@ export function ShortsCard({ short }: { short: Short }) {
         />
       </div>
       <div className="flex flex-col gap-0.5">
-        <h3 className="truncate text-sm font-medium text-[#0f0f0f]">
+        <h3 className="truncate text-sm font-medium text-foreground">
           {short.title}
         </h3>
-        <p className="text-xs text-[#606060]">{short.views}</p>
+        <p className="text-xs text-muted">{short.views}</p>
       </div>
     </Link>
   );
