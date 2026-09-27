@@ -1,6 +1,6 @@
 # Exercise: Semantic search over CLIP embeddings
 
-Continue from [EXERCISE-0130](EXERCISE-0130-clip-embeddings.md): every new video carries three CLIP embeddings, but nothing reads them and the header search box is still decorative. Have Agent close the loop — embed the search query with CLIP on the server, rank videos by the closest of their three embeddings, and wire the search box to a real results page. Along the way, reset the catalog so everything is Cloudflare-backed and searchable.
+Continue from [EXERCISE-0150](EXERCISE-0150-clip-embeddings.md): every new video carries three CLIP embeddings, but nothing reads them and the header search box is still decorative. Have Agent close the loop — embed the search query with CLIP on the server, rank videos by the closest of their three embeddings, and wire the search box to a real results page. Along the way, reset the catalog so everything is Cloudflare-backed and searchable.
 
 Prerequisite: the Cloudflare token and embeddings setup from the previous two exercises.
 

@@ -4,6 +4,7 @@ import { Header } from "@/components/header";
 import { Sidebar } from "@/components/sidebar";
 import { VideoCard } from "@/components/video-card";
 import { embedText } from "@/lib/embeddings";
+import { getTheme } from "@/lib/get-theme";
 import { getSidebarChannels, searchVideos } from "@/lib/queries";
 
 type SearchPageProps = {
@@ -21,7 +22,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
   const query = q?.trim() ?? "";
 
-  const [results, subscriptions] = await Promise.all([
+  const [theme, results, subscriptions] = await Promise.all([
+    getTheme(),
     query
       ? embedText(query).then((embedding) => searchVideos(embedding))
       : Promise.resolve([]),
@@ -29,8 +31,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   ]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <Header query={query} />
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header theme={theme} query={query} />
       <div className="flex flex-1 items-start">
         <Sidebar subscriptions={subscriptions} />
         <main className="flex min-w-0 flex-1 flex-col gap-6 px-6 pt-3 pb-10">
@@ -40,7 +42,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <EmptyState message={`No results for "${query}".`} />
           ) : (
             <>
-              <h1 className="text-xl font-bold text-[#0f0f0f]">
+              <h1 className="text-xl font-bold text-foreground">
                 Results for &ldquo;{query}&rdquo;
               </h1>
               <div className="grid w-full grid-cols-4 gap-x-4 gap-y-10">
@@ -59,8 +61,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 function EmptyState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center gap-3 pt-24 text-center">
-      <SearchX className="size-10 text-[#606060]" />
-      <p className="text-base text-[#606060]">{message}</p>
+      <SearchX className="size-10 text-muted" />
+      <p className="text-base text-muted">{message}</p>
     </div>
   );
 }
