@@ -1,6 +1,6 @@
 # Exercise: Move static page data into Supabase with Drizzle
 
-Take the mock data behind the pages from EXERCISE-0020..0040 and replace it with a real database: connect the project to Supabase, model the domain with Drizzle, then have Agent convert the static content into seeded rows and load it dynamically.
+Continue from [EXERCISE-0060](EXERCISE-0060-ASSIGNMENT-02-shorts-feed.md): the pages, dark theme, and Shorts feed still read from files in `src/lib`. Replace that mock data with a real database: connect the project to Supabase, model the domain with Drizzle, then have Agent convert the static content into seeded rows and load it dynamically.
 
 ## Part 1: Connect to Supabase
 
