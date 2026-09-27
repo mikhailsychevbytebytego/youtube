@@ -1,6 +1,6 @@
 # Exercise: Channel subscriptions, subscription feed, and cat confetti
 
-Continue from [EXERCISE-0180](EXERCISE-0180-video-generation-caching-and-cleanup.md): Users on MewTube can view channels and videos, but cannot subscribe to creators, filter their home sidebar to subscribed channels, or view a dedicated feed of subscription uploads. Have Agent implement database-backed channel subscriptions with authentication gating, a custom subscription hook with local caching for instant UI feedback, a dynamic sidebar rail, a dedicated `/subscriptions` feed, and a festive full-page floating cat confetti animation when subscribing.
+Continue from [EXERCISE-0200](EXERCISE-0200-video-generation-caching-and-cleanup.md): Users on MewTube can view channels and videos, but cannot subscribe to creators, filter their home sidebar to subscribed channels, or view a dedicated feed of subscription uploads. Have Agent implement database-backed channel subscriptions with authentication gating, a custom subscription hook with local caching for instant UI feedback, a dynamic sidebar rail, a dedicated `/subscriptions` feed, and a festive full-page floating cat confetti animation when subscribing.
 
 Ask Agent:
 
