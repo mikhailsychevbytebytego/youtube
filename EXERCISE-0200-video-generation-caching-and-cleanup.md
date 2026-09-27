@@ -1,6 +1,6 @@
 # Exercise: Video generation caching and mock data cleanup
 
-Continue from [EXERCISE-0170](EXERCISE-0170-video-autoplay-and-watch-time.md): Mock video generation involves expensive AI model calls (LLM prompts, Seedream image generation, Seedance video rendering, and CLIP embeddings). Have Agent implement local disk-based asset caching for `src/db/mock.ts` under a `.mock-cache/` directory, update the video duration to 8 seconds, enforce AI video filtering in database queries, and clean up non-AI placeholder content.
+Continue from [EXERCISE-0190](EXERCISE-0190-video-autoplay-and-watch-time.md): Mock video generation involves expensive AI model calls (LLM prompts, Seedream image generation, Seedance video rendering, and CLIP embeddings). Have Agent implement local disk-based asset caching for `src/db/mock.ts` under a `.mock-cache/` directory, update the video duration to 8 seconds, enforce AI video filtering in database queries, and clean up non-AI placeholder content.
 
 Ask Agent:
 
