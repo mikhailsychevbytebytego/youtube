@@ -1,7 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { BellDot, CircleX, Menu, Mic, Play, Search } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
 import type { Theme } from "@/lib/theme";
 
 export function Header({ theme, query }: { theme: Theme; query?: string }) {
@@ -56,22 +55,13 @@ export function Header({ theme, query }: { theme: Theme; query?: string }) {
         >
           <Search className="size-6 text-foreground" />
         </button>
-        <ThemeToggle initialTheme={theme} />
         <button aria-label="Create" className="hidden md:block">
           <CircleX className="size-6 text-foreground" />
         </button>
         <button aria-label="Notifications" className="hidden md:block">
           <BellDot className="size-6 text-foreground" />
         </button>
-        <div className="relative size-8 overflow-hidden rounded-full">
-          <Image
-            src="/images/avatar-user.png"
-            alt="Your profile"
-            fill
-            sizes="32px"
-            className="object-cover"
-          />
-        </div>
+        <UserMenu initialTheme={theme} />
       </div>
     </header>
   );

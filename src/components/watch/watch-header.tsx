@@ -1,7 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Bell, Menu, Mic, Play, Plus, Search } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
 import type { Theme } from "@/lib/theme";
 
 export function WatchHeader({
@@ -76,7 +75,6 @@ export function WatchHeader({
         >
           <Search className="size-6 text-foreground" />
         </button>
-        <ThemeToggle initialTheme={theme} />
         <button className="hidden items-center gap-2 rounded-full border border-border px-3 py-2 md:flex">
           <Plus className="size-5 text-foreground" />
           <span className="text-sm font-semibold text-foreground">Create</span>
@@ -92,15 +90,7 @@ export function WatchHeader({
             </span>
           </span>
         </button>
-        <div className="relative size-8 overflow-hidden rounded-full">
-          <Image
-            src="/images/avatar-user.png"
-            alt="Your profile"
-            fill
-            sizes="32px"
-            className="object-cover"
-          />
-        </div>
+        <UserMenu initialTheme={theme} />
       </div>
     </header>
   );
