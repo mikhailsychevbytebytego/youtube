@@ -1,6 +1,6 @@
 # Exercise: Add Better Auth on the existing users table and guard /admin
 
-Continue from [EXERCISE-0100](EXERCISE-0100-actual-video-creation.md): the app has real data and an admin section, but `/admin` is wide open — the gap noted back in [EXERCISE-0060](EXERCISE-0060-admin-crud.md). Have Agent integrate Better Auth reusing the `users` table that already exists, add an admin flag, and lock the admin section down.
+Continue from [EXERCISE-0120](EXERCISE-0120-actual-video-creation.md): the app has real data and an admin section, but `/admin` is wide open — the gap noted back in [EXERCISE-0080](EXERCISE-0080-admin-crud.md). Have Agent integrate Better Auth reusing the `users` table that already exists, add an admin flag, and lock the admin section down.
 
 Prerequisite: `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` in `.env` (any random 32+ byte hex works for the secret; the URL is `http://localhost:3000` in dev).
 
