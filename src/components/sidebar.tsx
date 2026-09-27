@@ -9,17 +9,14 @@ import {
   Library,
   ThumbsUp,
   Tv2,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { subscriptions } from "@/lib/data";
 
-const mainNav: {
-  label: string;
-  icon: LucideIcon;
-  href: string;
-  active?: boolean;
-}[] = [
-  { label: "Home", icon: House, href: "/", active: true },
+const mainNav: { label: string; icon: LucideIcon; href: string }[] = [
+  { label: "Home", icon: House, href: "/" },
+  { label: "Shorts", icon: Zap, href: "/shorts" },
   { label: "Explore", icon: Compass, href: "#" },
   { label: "Cat Shows", icon: Tv2, href: "#" },
   { label: "Subscriptions", icon: FolderHeart, href: "#" },
@@ -62,18 +59,26 @@ function NavItem({
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ activeItem = "Home" }: { activeItem?: string }) {
   return (
-    <aside className="flex w-60 shrink-0 flex-col gap-3 px-3 pt-3">
+    <aside className="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto px-3 pt-3">
       <nav className="flex w-full flex-col gap-1">
         {mainNav.map((item) => (
-          <NavItem key={item.label} {...item} />
+          <NavItem
+            key={item.label}
+            {...item}
+            active={item.label === activeItem}
+          />
         ))}
       </nav>
       <div className="w-full border-t border-border" />
       <nav className="flex w-full flex-col gap-1">
         {libraryNav.map((item) => (
-          <NavItem key={item.label} {...item} />
+          <NavItem
+            key={item.label}
+            {...item}
+            active={item.label === activeItem}
+          />
         ))}
       </nav>
       <div className="w-full border-t border-border" />
