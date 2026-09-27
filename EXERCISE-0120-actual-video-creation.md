@@ -1,6 +1,6 @@
 # Exercise: Create real videos with an image-to-video model
 
-Continue from [EXERCISE-0090](EXERCISE-0090-video-generation.md): every mock video has a script and a thumbnail, but the watch page still shows a static mock player. Have Agent close the loop — feed the script and thumbnail into an image-to-video model and play the result on the site.
+Continue from [EXERCISE-0110](EXERCISE-0110-video-generation.md): every mock video has a script and a thumbnail, but the watch page still shows a static mock player. Have Agent close the loop — feed the script and thumbnail into an image-to-video model and play the result on the site.
 
 > **Cost note:** Seedance 2.0 Fast is priced per second of output (~$1.45 for a 6-second clip), so keep counts low — `--videos 1` is plenty for testing. If you'd rather not spend on generation at all, the additional course materials include a library of pregenerated videos you can drop into `public/videos/` instead (provided as a separate package).
 
