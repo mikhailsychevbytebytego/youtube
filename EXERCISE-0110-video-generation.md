@@ -1,6 +1,6 @@
 # Exercise: Generate fake videos with scripts and thumbnails
 
-Continue from [EXERCISE-0080](EXERCISE-0080-avatar-generation.md): the generator produces users, channels, and avatars, but the channels are empty. Have Agent extend it so the LLM also invents the videos — title, viewer description, and a production script for a 5-second clip — and a text-to-image model renders each video's thumbnail.
+Continue from [EXERCISE-0100](EXERCISE-0100-avatar-generation.md): the generator produces users, channels, and avatars, but the channels are empty. Have Agent extend it so the LLM also invents the videos — title, viewer description, and a production script for a 5-second clip — and a text-to-image model renders each video's thumbnail.
 
 Ask Agent:
 
