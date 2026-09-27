@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronRight, Shirt } from "lucide-react";
 import { channelShorts } from "@/lib/channel-data";
 
@@ -11,7 +12,11 @@ export function ChannelShorts() {
       </div>
       <div className="relative flex w-full items-start gap-4">
         {channelShorts.map((short) => (
-          <div key={short.id} className="flex min-w-0 flex-1 flex-col gap-2">
+          <Link
+            key={short.id}
+            href="/watch"
+            className="flex min-w-0 flex-1 flex-col gap-2"
+          >
             <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl">
               <Image
                 src={short.thumbnail}
@@ -27,7 +32,7 @@ export function ChannelShorts() {
               </h3>
               <p className="text-[13px] text-[#606060]">{short.views}</p>
             </div>
-          </div>
+          </Link>
         ))}
         <button
           aria-label="Scroll shorts"

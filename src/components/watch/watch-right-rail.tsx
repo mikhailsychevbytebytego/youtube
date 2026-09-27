@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronRight, CircleX, PawPrint } from "lucide-react";
 import {
   catShorts,
@@ -20,7 +21,11 @@ function UpNextList() {
         </div>
       </div>
       {upNextVideos.map((video) => (
-        <div key={video.id} className="flex w-full items-start gap-2">
+        <Link
+          key={video.id}
+          href="/watch"
+          className="flex w-full items-start gap-2"
+        >
           <div className="relative h-[94px] w-[168px] shrink-0 overflow-hidden rounded-lg">
             <Image
               src={video.thumbnail}
@@ -48,7 +53,7 @@ function UpNextList() {
               <p>{video.meta}</p>
             </div>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
@@ -80,8 +85,9 @@ function ShortsShelf({
       </div>
       <div className="relative flex w-full gap-3">
         {shorts.map((short) => (
-          <div
+          <Link
             key={short.id}
+            href="/watch"
             className="relative w-[120px] shrink-0 overflow-hidden rounded-lg"
             style={{ height }}
           >
@@ -97,7 +103,7 @@ function ShortsShelf({
                 {short.duration}
               </span>
             )}
-          </div>
+          </Link>
         ))}
         {showScrollButton && (
           <button

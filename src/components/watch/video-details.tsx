@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowUpNarrowWide,
   ChevronDown,
@@ -18,7 +19,10 @@ export function VideoDetails() {
 
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative size-10 shrink-0 overflow-hidden rounded-full">
+          <Link
+            href="/channel"
+            className="relative size-10 shrink-0 overflow-hidden rounded-full"
+          >
             <Image
               src={watchVideo.channelAvatar}
               alt={watchVideo.channel}
@@ -26,14 +30,14 @@ export function VideoDetails() {
               sizes="40px"
               className="object-cover"
             />
-          </div>
+          </Link>
           <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1">
+            <Link href="/channel" className="flex items-center gap-1">
               <span className="text-base font-semibold text-black">
                 {watchVideo.channel}
               </span>
               <CircleCheck className="size-3 text-[#606060]" />
-            </div>
+            </Link>
             <span className="text-xs text-[#606060]">
               {watchVideo.subscribers}
             </span>

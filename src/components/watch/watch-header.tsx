@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Bell, Menu, Mic, Play, Plus, Search } from "lucide-react";
 
 export function WatchHeader({
@@ -15,12 +16,12 @@ export function WatchHeader({
         >
           <Menu className="size-6 text-[#0f0f0f]" />
         </button>
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <div className="flex h-6 w-[34px] items-center justify-center rounded-md bg-[#ff0000]">
             <Play className="size-3 fill-white text-white" />
           </div>
           <span className="text-xl font-bold text-[#0f0f0f]">MeowTube</span>
-        </div>
+        </Link>
       </div>
 
       <div className="flex w-[720px] items-center gap-3">

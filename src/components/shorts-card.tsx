@@ -1,9 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Short } from "@/lib/data";
 
 export function ShortsCard({ short }: { short: Short }) {
   return (
-    <div className="flex flex-col gap-2">
+    <Link href="/watch" className="flex flex-col gap-2">
       <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl">
         <Image
           src={short.thumbnail}
@@ -19,6 +20,6 @@ export function ShortsCard({ short }: { short: Short }) {
         </h3>
         <p className="text-xs text-[#606060]">{short.views}</p>
       </div>
-    </div>
+    </Link>
   );
 }

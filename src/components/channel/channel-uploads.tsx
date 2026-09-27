@@ -1,11 +1,15 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronRight, Play } from "lucide-react";
 import { featuredVideo, uploads } from "@/lib/channel-data";
 
 export function FeaturedVideo() {
   return (
     <div className="flex w-full items-start gap-6">
-      <div className="relative h-[238px] w-[424px] shrink-0 overflow-hidden rounded-xl">
+      <Link
+        href="/watch"
+        className="relative h-[238px] w-[424px] shrink-0 overflow-hidden rounded-xl"
+      >
         <Image
           src={featuredVideo.thumbnail}
           alt={featuredVideo.title}
@@ -16,11 +20,13 @@ export function FeaturedVideo() {
         <span className="absolute right-2 bottom-2 rounded-sm bg-black/80 px-1 py-0.5 text-xs font-semibold text-white">
           {featuredVideo.duration}
         </span>
-      </div>
+      </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <h2 className="text-xl font-bold text-[#0f0f0f]">
-          {featuredVideo.title}
-        </h2>
+        <Link href="/watch">
+          <h2 className="text-xl font-bold text-[#0f0f0f]">
+            {featuredVideo.title}
+          </h2>
+        </Link>
         <p className="text-sm text-[#606060]">{featuredVideo.meta}</p>
         <div className="text-sm leading-normal text-[#606060]">
           <p>{featuredVideo.description}</p>
@@ -43,7 +49,11 @@ export function ChannelUploads() {
       </div>
       <div className="relative flex w-full items-start gap-4">
         {uploads.map((video) => (
-          <div key={video.id} className="flex min-w-0 flex-1 flex-col gap-3">
+          <Link
+            key={video.id}
+            href="/watch"
+            className="flex min-w-0 flex-1 flex-col gap-3"
+          >
             <div className="relative aspect-video w-full overflow-hidden rounded-xl">
               <Image
                 src={video.thumbnail}
@@ -65,7 +75,7 @@ export function ChannelUploads() {
                 <p>{video.meta}</p>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
         <button
           aria-label="Scroll uploads"

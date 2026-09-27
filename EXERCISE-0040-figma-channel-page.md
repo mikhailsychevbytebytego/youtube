@@ -5,7 +5,8 @@ Repeat the workflow from [EXERCISE-0020](EXERCISE-0020-figma-home-page.md), this
 1. Generate a channel page mock with Codex — banner, channel avatar with name/handle/subscriber count, subscribe button, tab bar (Home, Videos, Shorts, ...), a featured video, an "Uploads" row, and a shorts shelf.
 2. Convert it to a real Figma design with the Figma agent and fix any obvious issues.
 3. Ask Agent to implement the design from Figma, on a route like `/channel`.
+4. Now that all three pages exist, wire them together. Ask Agent to make video thumbnails and titles link to `/watch`, and channel names and avatars link to `/channel`, using `next/link`. There is still only one watch page and one channel page, so every video points at the same `/watch` — per-video routes come later in the course.
 
 Verify the same points as in EXERCISE-0020: assets downloaded locally, icons from an icon library, sensible component structure (reuse shared pieces like the header where the design allows), lint/type checks pass.
 
-**Check yourself:** open [http://localhost:3000/channel](http://localhost:3000/channel) next to the Figma frame and compare. Bonus: clicking the channel name on the watch page should navigate to the channel page.
+**Check yourself:** open [http://localhost:3000/channel](http://localhost:3000/channel) next to the Figma frame and compare. Then click your way around: a video on the home page should open the watch page, the channel name there should open the channel page, and the logo should bring you back home.
