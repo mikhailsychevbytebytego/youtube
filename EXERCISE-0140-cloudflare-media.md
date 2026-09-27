@@ -1,6 +1,6 @@
 # Exercise: Serve mock media from Cloudflare Images and Stream
 
-Continue from [EXERCISE-0110](EXERCISE-0110-better-auth.md): the mock generator produces real avatars, thumbnails, and mp4s, but everything lands in `public/` and is served by Next itself — fine on localhost, wrong for anything real. Have Agent move generated media to Cloudflare: images to Cloudflare Images (served from `imagedelivery.net`), videos to Cloudflare Stream (served as HLS from `cloudflarestream.com`).
+Continue from [EXERCISE-0130](EXERCISE-0130-better-auth.md): the mock generator produces real avatars, thumbnails, and mp4s, but everything lands in `public/` and is served by Next itself — fine on localhost, wrong for anything real. Have Agent move generated media to Cloudflare: images to Cloudflare Images (served from `imagedelivery.net`), videos to Cloudflare Stream (served as HLS from `cloudflarestream.com`).
 
 Prerequisite: `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_STREAM_API_TOKEN` in `.env`, where the token is an account API token with **both** `Stream: Edit` and `Cloudflare Images: Edit` permissions — a Stream-only token fails the image uploads with a 403.
 
