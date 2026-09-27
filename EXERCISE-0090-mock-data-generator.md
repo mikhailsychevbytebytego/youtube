@@ -1,6 +1,6 @@
 # Exercise: Generate mock data with an LLM via a 3rd party service (e.g. fal.ai)
 
-Continue from [EXERCISE-0060](EXERCISE-0060-admin-crud.md): the seed script and admin CRUD can populate data, but everything is hand-written. Have Agent build a generator script that asks an LLM to invent fake users and channels, then validates and inserts them.
+Continue from [EXERCISE-0080](EXERCISE-0080-admin-crud.md): the seed script and admin CRUD can populate data, but everything is hand-written. Have Agent build a generator script that asks an LLM to invent fake users and channels, then validates and inserts them.
 
 Prerequisite: a fal.ai API key in `.env` as `FAL_KEY` (from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys)).
 
