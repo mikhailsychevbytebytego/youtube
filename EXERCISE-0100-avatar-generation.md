@@ -1,6 +1,6 @@
 # Exercise: Generate avatars with a text-to-image model
 
-Continue from [EXERCISE-0070](EXERCISE-0070-mock-data-generator.md): the mock data generator invents users and channels, but leaves avatars null. Have Agent extend it so the LLM also writes an image prompt per user, and a text-to-image model turns it into a real profile picture.
+Continue from [EXERCISE-0090](EXERCISE-0090-mock-data-generator.md): the mock data generator invents users and channels, but leaves avatars null. Have Agent extend it so the LLM also writes an image prompt per user, and a text-to-image model turns it into a real profile picture.
 
 Ask Agent:
 
