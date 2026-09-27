@@ -76,11 +76,10 @@ For example, `EXERCISE-0010` asks you to give the agent this:
 > basic project setup according to modern Next.js best practices, nothing more yet.
 
 **One branch per exercise.** Branch `NNNN-*` holds the *finished* state of exercise `NNNN`,
-together with that exercise's prompt file and every prior exercise's file. So:
-
-- To **read along**, check out `NNNN-*` and compare the exercise file to the code there.
-- To **attempt an exercise yourself**, check out the *previous* branch, work from the next
-  exercise's prompt file, then diff your result against branch `NNNN-*` as an answer key.
+together with that exercise's prompt file and every prior exercise's file. Checking out a
+branch therefore shows you both the assignment and the result it should produce, so you can
+read the prompt and study what the agent built from it. Diffing two adjacent branches shows
+exactly what one exercise adds.
 
 ### Branch map
 
@@ -148,8 +147,9 @@ No account is needed for the testing exercise (`0200`) — it runs a CLIP model 
 
 ## 5. Environment variables
 
-Copy `.env.example` to `.env` on whichever branch you are working on. Variables unlock as
-you progress; you do not need all of them on day one.
+The app reads configuration from a `.env` file at the repo root, which you create yourself.
+Variables unlock as you progress — nothing before exercise `0050` needs any of them, so you
+do not need all of this on day one.
 
 | Variable | From exercise | Notes |
 | --- | --- | --- |
@@ -163,7 +163,7 @@ you progress; you do not need all of them on day one.
 | `ADMIN_NAME` | `0170` | Seed admin user. |
 | `ADMIN_PASSWORD` | `0170` | Seed admin user. |
 
-`.env` is gitignored. Never commit real keys.
+`.env` is gitignored — never commit real keys.
 
 ---
 
@@ -172,7 +172,7 @@ you progress; you do not need all of them on day one.
 ```bash
 git checkout 0200-ai-visual-testing
 npm install
-cp .env.example .env     # then fill in the values from section 5
+# create .env at the repo root with the variables from section 5
 npm run db:push          # create the schema
 npm run db:seed          # seed baseline data
 npm run db:admin         # create the admin user from ADMIN_* vars
