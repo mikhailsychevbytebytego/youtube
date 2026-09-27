@@ -1,6 +1,6 @@
 # Exercise: Build the Up Next rail from CLIP similarity
 
-Continue from [EXERCISE-0140](EXERCISE-0140-semantic-search.md): search finds videos closest to a query, but the watch page's "Up next" rail is still just recency with the current channel filtered out. Have Agent reuse the stored embeddings to make the rail genuinely related — the videos closest to the one currently playing.
+Continue from [EXERCISE-0160](EXERCISE-0160-semantic-search.md): search finds videos closest to a query, but the watch page's "Up next" rail is still just recency with the current channel filtered out. Have Agent reuse the stored embeddings to make the rail genuinely related — the videos closest to the one currently playing.
 
 Prerequisite: the embedded, Cloudflare-backed catalog from the previous exercise. No new services, dependencies, or generation cost — this is pure SQL over vectors that already exist.
 
