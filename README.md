@@ -105,7 +105,7 @@ exactly what one exercise adds.
 | `0130-better-auth` | Add Better Auth on the users table and guard `/admin` |
 | `0140-cloudflare-media` | Serve mock media from Cloudflare Images and Stream |
 | `0150-clip-embeddings` | Store CLIP embeddings for videos with pgvector |
-| `0160-semantic-search` | Semantic search over CLIP embeddings |
+| `0160-semantic-search` | Semantic search over CLIP embeddings *(mainline)* |
 | `0170-related-videos` | Build the Up Next rail from CLIP similarity |
 | `0180-appearance-menu` | Avatar dropdown with an Appearance submenu |
 | `0190-video-autoplay-and-watch-time` | Autoplay, watch time tracking, admin analytics |
@@ -127,6 +127,17 @@ what the agent produces:
 | `0020-prompt-home` | From a text prompt only |
 
 Pick whichever you like, but continue the course from `0030-watch-page`.
+
+### The two search paths at step 0160
+
+Both branches fork from `0150-clip-embeddings` and wire the same `/search` page and header box. They differ only in how results are ranked:
+
+| Branch | Approach |
+| --- | --- |
+| `0160-semantic-search` | CLIP embeddings — **this is the mainline; `0170` continues from it** |
+| `0160-tsquery-search` | Postgres `tsvector` / `tsquery` lexical search |
+
+`0160-tsquery-search` is a side path so you can compare token matching against meaning. Continue the course from `0160-semantic-search`.
 
 ### Branches that are not part of the course
 
