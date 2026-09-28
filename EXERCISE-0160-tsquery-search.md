@@ -1,6 +1,6 @@
 # Exercise: Lexical search with Postgres `tsvector`
 
-Continue from [EXERCISE-0130](EXERCISE-0130-clip-embeddings.md): videos have CLIP embeddings, but nothing reads them and the header search box is still decorative. This is the **alternative** to the CLIP path on `0140-semantic-search` — same results page and header wiring, but rank with Postgres full-text search instead of CLIP. No new columns, no extension, no catalog reset, and the CLIP model never runs at request time.
+Continue from [EXERCISE-0150](EXERCISE-0150-clip-embeddings.md): videos have CLIP embeddings, but nothing reads them and the header search box is still decorative. This is the **alternative** to the CLIP path on `0160-semantic-search` — same results page and header wiring, but rank with Postgres full-text search instead of CLIP. No new columns, no extension, no catalog reset, and the CLIP model never runs at request time. The mainline continues from `0160-semantic-search`; this branch is a side path so you can compare lexical vs semantic ranking.
 
 Prerequisite: a populated `videos` table with titles and descriptions (the Cloudflare catalog from the previous exercises is fine). Full-text search is built into Postgres; you do not enable pgvector for this path and you do not run `db:push`.
 
