@@ -23,7 +23,12 @@ npm install
 
 Then read `EXERCISE-0010-nextjs-setup.md` on that branch.
 
-The finished application is on **`0200-ai-visual-testing`**.
+The finished application is on **`0220-ai-visual-testing`**.
+
+Week 1 ends at `0040-channel-page`. Two homework assignments follow it (`0050`, `0060`)
+before the course moves onto Supabase. Zip snapshots of those states ship as GitHub
+Release assets (`final.zip` / `assignment.zip` = end of week 1; `solution.zip` = both
+assignments done).
 
 ---
 
@@ -88,23 +93,25 @@ exactly what one exercise adds.
 | `0010-nextjs-setup` | Scaffold a project with an AI agent |
 | `0020-static-home` | Design and implement a home page with AI agents *(mainline)* |
 | `0030-watch-page` | Design and implement a watch page |
-| `0040-channel-page` | Design and implement a channel page |
-| `0050-supabase-drizzle` | Move static page data into Supabase with Drizzle |
-| `0060-admin-crud` | Build an admin CRUD interface with an AI agent |
-| `0070-mock-data-generator` | Generate mock data with an LLM via fal.ai |
-| `0080-avatar-generation` | Generate avatars with a text-to-image model |
-| `0090-video-generation` | Generate fake videos with scripts and thumbnails |
-| `0100-actual-video-creation` | Create real videos with an image-to-video model |
-| `0110-better-auth` | Add Better Auth on the users table and guard `/admin` |
-| `0120-cloudflare-media` | Serve mock media from Cloudflare Images and Stream |
-| `0130-clip-embeddings` | Store CLIP embeddings for videos with pgvector |
-| `0140-semantic-search` | Semantic search over CLIP embeddings |
-| `0150-related-videos` | Build the Up Next rail from CLIP similarity |
-| `0160-dark-mode` | Dark mode support and appearance menu |
-| `0170-video-autoplay-and-watch-time` | Autoplay, watch time tracking, admin analytics |
-| `0180-video-generation-caching-and-cleanup` | Video generation caching and mock data cleanup |
-| `0190-channel-subscriptions-and-cat-confetti` | Subscriptions, subscription feed, cat confetti |
-| `0200-ai-visual-testing` | AI-driven visual & E2E testing — **the complete project** |
+| `0040-channel-page` | Design and implement a channel page — **end of week 1 / live session** |
+| `0050-assignment-01-dark-mode` | Homework: cookie-backed dark mode |
+| `0060-assignment-02-shorts-feed` | Homework: snap-scrolling Shorts image feed |
+| `0070-supabase-drizzle` | Move static page data into Supabase with Drizzle |
+| `0080-admin-crud` | Build an admin CRUD interface with an AI agent |
+| `0090-mock-data-generator` | Generate mock data with an LLM via fal.ai |
+| `0100-avatar-generation` | Generate avatars with a text-to-image model |
+| `0110-video-generation` | Generate fake videos with scripts and thumbnails |
+| `0120-actual-video-creation` | Create real videos with an image-to-video model |
+| `0130-better-auth` | Add Better Auth on the users table and guard `/admin` |
+| `0140-cloudflare-media` | Serve mock media from Cloudflare Images and Stream |
+| `0150-clip-embeddings` | Store CLIP embeddings for videos with pgvector |
+| `0160-semantic-search` | Semantic search over CLIP embeddings |
+| `0170-related-videos` | Build the Up Next rail from CLIP similarity |
+| `0180-appearance-menu` | Avatar dropdown with an Appearance submenu |
+| `0190-video-autoplay-and-watch-time` | Autoplay, watch time tracking, admin analytics |
+| `0200-video-generation-caching-and-cleanup` | Video generation caching and mock data cleanup |
+| `0210-channel-subscriptions-and-cat-confetti` | Subscriptions, subscription feed, cat confetti |
+| `0220-ai-visual-testing` | AI-driven visual & E2E testing — **the complete project** |
 
 ### The four home-page variants at step 0020
 
@@ -126,7 +133,7 @@ Pick whichever you like, but continue the course from `0030-watch-page`.
 - `main` — this signpost. No code.
 - `archive/pre-course-demo` — an early standalone prototype with completely unrelated git
   history, built before most of the course existed. It is **not** the finished project and
-  is kept only for reference. The finished project is `0200-ai-visual-testing`.
+  is kept only for reference. The finished project is `0220-ai-visual-testing`.
 
 ---
 
@@ -137,31 +144,31 @@ Free tiers are sufficient throughout, with one exception noted below.
 | Service | First needed at | Used for |
 | --- | --- | --- |
 | [Figma](https://figma.com) | `0020` | Design source for the page-building exercises. Requires a registered account **and an activated subscription plan** for agent operations — see exercise 0020. The `0020-alt-static-home`, `0020-pen-home`, and `0020-prompt-home` variants avoid Figma entirely. |
-| [Supabase](https://supabase.com) | `0050` | Hosted Postgres (plus `pgvector` from `0130`). |
-| [fal.ai](https://fal.ai) | `0070` | LLM text, image, and video generation. Pay-as-you-go credits. |
-| [Cloudflare](https://cloudflare.com) | `0120` | Images and Stream for media hosting. |
+| [Supabase](https://supabase.com) | `0070` | Hosted Postgres (plus `pgvector` from `0150`). |
+| [fal.ai](https://fal.ai) | `0090` | LLM text, image, and video generation. Pay-as-you-go credits. |
+| [Cloudflare](https://cloudflare.com) | `0140` | Images and Stream for media hosting. |
 
-No account is needed for the testing exercise (`0200`) — it runs a CLIP model locally.
+No account is needed for the testing exercise (`0220`) — it runs a CLIP model locally.
 
 ---
 
 ## 5. Environment variables
 
 The app reads configuration from a `.env` file at the repo root, which you create yourself.
-Variables unlock as you progress — nothing before exercise `0050` needs any of them, so you
+Variables unlock as you progress — nothing before exercise `0070` needs any of them, so you
 do not need all of this on day one.
 
 | Variable | From exercise | Notes |
 | --- | --- | --- |
-| `DATABASE_URL` | `0050` | Supabase Postgres connection string. |
-| `FAL_KEY` | `0070` | fal.ai API key. |
-| `BETTER_AUTH_SECRET` | `0110` | Any long random string. |
-| `BETTER_AUTH_URL` | `0110` | `http://localhost:3000` in development. |
-| `CLOUDFLARE_ACCOUNT_ID` | `0120` | Cloudflare account identifier. |
-| `CLOUDFLARE_STREAM_API_TOKEN` | `0120` | Token with Stream and Images permissions. |
-| `ADMIN_EMAIL` | `0170` | Seed admin user for `npm run db:admin`. |
-| `ADMIN_NAME` | `0170` | Seed admin user. |
-| `ADMIN_PASSWORD` | `0170` | Seed admin user. |
+| `DATABASE_URL` | `0070` | Supabase Postgres connection string. |
+| `FAL_KEY` | `0090` | fal.ai API key. |
+| `BETTER_AUTH_SECRET` | `0130` | Any long random string. |
+| `BETTER_AUTH_URL` | `0130` | `http://localhost:3000` in development. |
+| `CLOUDFLARE_ACCOUNT_ID` | `0140` | Cloudflare account identifier. |
+| `CLOUDFLARE_STREAM_API_TOKEN` | `0140` | Token with Stream and Images permissions. |
+| `ADMIN_EMAIL` | `0190` | Seed admin user for `npm run db:admin`. |
+| `ADMIN_NAME` | `0190` | Seed admin user. |
+| `ADMIN_PASSWORD` | `0190` | Seed admin user. |
 
 `.env` is gitignored — never commit real keys.
 
@@ -170,7 +177,7 @@ do not need all of this on day one.
 ## 6. Running the finished project
 
 ```bash
-git checkout 0200-ai-visual-testing
+git checkout 0220-ai-visual-testing
 npm install
 # create .env at the repo root with the variables from section 5
 npm run db:push          # create the schema
