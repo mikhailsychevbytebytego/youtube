@@ -30,7 +30,7 @@ before the course moves onto Supabase. Week 2 ends at `0140-cloudflare-media`. Z
 snapshots ship as GitHub Release assets:
 
 - `week-1`: `final.zip` / `assignment.zip` (end of week 1) and `solution.zip` (both assignments done)
-- `week-2`: `week2-end.zip` (through Cloudflare media)
+- `week-2`: `final.zip` (through Cloudflare media)
 
 ---
 
