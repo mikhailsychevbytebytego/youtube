@@ -1,6 +1,6 @@
 # Exercise: Video autoplay, watch time tracking, and admin analytics
 
-Continue from [EXERCISE-0180](EXERCISE-0180-appearance-menu.md): Video playback on MewTube currently lacks autoplay, user watch time isn't measured, and platform admins have no visibility into daily watch time metrics. Have Agent implement video autoplay, client-side watch time pinging, backend event logging, fake data seeding, configurable admin user setup, and an admin analytics dashboard with a visual watch time chart.
+Continue from [EXERCISE-0190](EXERCISE-0190-appearance-menu.md): Video playback on MewTube currently lacks autoplay, user watch time isn't measured, and platform admins have no visibility into daily watch time metrics. Have Agent implement video autoplay, client-side watch time pinging, backend event logging, fake data seeding, configurable admin user setup, and an admin analytics dashboard with a visual watch time chart.
 
 Prerequisite:
 - **File a Linear issue (outside of Cursor):** create an issue ticket in your Linear workspace describing video autoplay and watch time tracking (e.g. "Video autoplay and watch time tracking").
