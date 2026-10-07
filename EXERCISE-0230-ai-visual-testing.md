@@ -1,6 +1,6 @@
 # Exercise: AI-driven visual & E2E testing with npm packages
 
-Continue from [EXERCISE-0210](EXERCISE-0210-channel-subscriptions-and-cat-confetti.md): MewTube has channel subscriptions, a cookie-backed appearance menu, and dynamic cat confetti animations. To ensure these visual UI interactions and animations remain pixel-perfect and free from regressions, implement an AI-driven visual testing suite using standard npm packages (`@playwright/test`, `@midscene/web`, and `@huggingface/transformers` local CLIP multimodal embeddings).
+Continue from [EXERCISE-0220](EXERCISE-0220-channel-subscriptions-and-cat-confetti.md): MewTube has channel subscriptions, a cookie-backed appearance menu, and dynamic cat confetti animations. To ensure these visual UI interactions and animations remain pixel-perfect and free from regressions, implement an AI-driven visual testing suite using standard npm packages (`@playwright/test`, `@midscene/web`, and `@huggingface/transformers` local CLIP multimodal embeddings).
 
 Ask Agent:
 
