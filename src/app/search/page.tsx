@@ -45,7 +45,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <h1 className="text-xl font-bold text-foreground">
                 Results for &ldquo;{query}&rdquo;
               </h1>
-              <div className="grid w-full grid-cols-4 gap-x-4 gap-y-10">
+              <div className="grid w-full grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
                 {results.map((video) => (
                   <VideoCard key={video.id} video={video} />
                 ))}
