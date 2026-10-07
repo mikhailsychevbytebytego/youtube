@@ -34,8 +34,8 @@ export function VideoDetails({ video }: { video: VideoWithChannel }) {
     <div className="flex w-full flex-col gap-3">
       <h1 className="text-xl font-bold text-foreground">{video.title}</h1>
 
-      <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Link
             href="/channel"
             className="relative size-10 shrink-0 overflow-hidden rounded-full"
@@ -62,7 +62,7 @@ export function VideoDetails({ video }: { video: VideoWithChannel }) {
               {formatCount(video.channel.subscriberCount, 2)} purrscribers
             </span>
           </div>
-          <button className="flex items-center gap-2 rounded-full bg-surface px-4 py-2">
+          <button className="flex min-h-11 items-center gap-2 rounded-full bg-surface px-4 py-2">
             <PawPrint className="size-[18px] text-foreground" />
             <span className="text-sm font-semibold text-foreground">
               Purrscribed
@@ -71,19 +71,22 @@ export function VideoDetails({ video }: { video: VideoWithChannel }) {
           </button>
         </div>
 
-        <div className="flex items-start gap-2">
+        <div className="-mx-3 flex items-start gap-2 overflow-x-auto px-3 md:mx-0 md:px-0">
           <div className="flex overflow-hidden rounded-full bg-surface">
-            <button className="flex items-center gap-2 border-r border-border px-3 py-2">
+            <button className="flex min-h-11 items-center gap-2 border-r border-border px-3 py-2">
               <ThumbsUp className="size-5 text-foreground" />
               <span className="text-sm font-semibold text-foreground">
                 {formatCount(video.likeCount)}
               </span>
             </button>
-            <button aria-label="Dislike" className="flex items-center px-3 py-2">
+            <button
+              aria-label="Dislike"
+              className="flex min-h-11 items-center px-3 py-2"
+            >
               <ThumbsDown className="size-5 text-foreground" />
             </button>
           </div>
-          <button className="flex items-center gap-2 rounded-full bg-surface px-4 py-2">
+          <button className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-surface px-4 py-2">
             <Share className="size-5 text-foreground" />
             <span className="text-sm font-medium text-foreground">Share</span>
           </button>

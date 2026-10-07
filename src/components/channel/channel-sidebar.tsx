@@ -74,7 +74,7 @@ export function ChannelSidebar({
   subscriptions: SidebarChannel[];
 }) {
   return (
-    <aside className="flex w-60 shrink-0 flex-col gap-3 px-3 pt-3">
+    <aside className="hidden w-60 shrink-0 flex-col gap-3 px-3 pt-3 md:flex">
       <nav className="flex w-full flex-col gap-1">
         {mainNav.map((item) => (
           <NavItem key={item.label} {...item} />

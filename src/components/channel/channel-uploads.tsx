@@ -11,16 +11,16 @@ import {
 
 export function FeaturedVideo({ video }: { video: Video }) {
   return (
-    <div className="flex w-full items-start gap-6">
+    <div className="flex w-full flex-col items-start gap-4 md:flex-row md:gap-6">
       <Link
         href={`/watch?v=${video.id}`}
-        className="relative h-[238px] w-[424px] shrink-0 overflow-hidden rounded-xl"
+        className="relative aspect-video w-full overflow-hidden rounded-xl md:h-[238px] md:w-[424px] md:shrink-0 md:aspect-auto"
       >
         <Image
           src={video.thumbnailUrl ?? "/images/avatar-user.png"}
           alt={video.title}
           fill
-          sizes="424px"
+          sizes="(min-width: 768px) 424px, 100vw"
           className="object-cover"
         />
         <span className="absolute right-2 bottom-2 rounded-sm bg-black/80 px-1 py-0.5 text-xs font-semibold text-white">
@@ -59,12 +59,12 @@ export function ChannelUploads({
           <span className="text-xs font-semibold text-foreground">Play all</span>
         </button>
       </div>
-      <div className="relative flex w-full items-start gap-4">
+      <div className="relative flex w-full items-start gap-4 overflow-x-auto">
         {uploads.map((video) => (
           <Link
             key={video.id}
             href={`/watch?v=${video.id}`}
-            className="flex min-w-0 flex-1 flex-col gap-3"
+            className="flex w-40 min-w-40 flex-col gap-3 md:min-w-0 md:w-auto md:flex-1"
           >
             <div className="relative aspect-video w-full overflow-hidden rounded-xl">
               <Image
@@ -97,7 +97,7 @@ export function ChannelUploads({
         ))}
         <button
           aria-label="Scroll uploads"
-          className="absolute top-[calc(50%-40px)] -right-5 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background drop-shadow-[0px_4px_4px_rgba(0,0,0,0.1)]"
+          className="absolute top-[calc(50%-40px)] -right-5 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background drop-shadow-[0px_4px_4px_rgba(0,0,0,0.1)] md:flex"
         >
           <ChevronRight className="size-5 text-foreground" />
         </button>

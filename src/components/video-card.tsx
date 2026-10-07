@@ -14,7 +14,7 @@ export function VideoCard({ video }: { video: VideoWithChannel }) {
           src={video.thumbnailUrl ?? "/images/avatar-user.png"}
           alt={video.title}
           fill
-          sizes="(min-width: 1280px) 25vw, 50vw"
+          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
           className="object-cover"
         />
       </Link>

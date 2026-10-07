@@ -42,7 +42,7 @@ export function VideoPlayer({ video }: { video: Video }) {
   const streamEmbedUrl = getStreamEmbedUrl(video);
   if (streamEmbedUrl) {
     return (
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#0f0f0f]">
+      <div className="relative aspect-video w-full overflow-hidden rounded-none bg-[#0f0f0f] md:rounded-xl">
         <iframe
           src={streamEmbedUrl}
           title={video.title}
@@ -56,7 +56,7 @@ export function VideoPlayer({ video }: { video: Video }) {
 
   if (video.videoUrl) {
     return (
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#0f0f0f]">
+      <div className="relative aspect-video w-full overflow-hidden rounded-none bg-[#0f0f0f] md:rounded-xl">
         <video
           src={video.videoUrl}
           poster={video.thumbnailUrl ?? undefined}
@@ -69,7 +69,7 @@ export function VideoPlayer({ video }: { video: Video }) {
   }
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-[#0f0f0f]">
+    <div className="relative aspect-video w-full overflow-hidden rounded-none bg-[#0f0f0f] md:rounded-xl">
       <Image
         src={video.thumbnailUrl ?? "/images/avatar-user.png"}
         alt={video.title}

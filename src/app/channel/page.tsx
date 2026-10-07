@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { WatchHeader } from "@/components/watch/watch-header";
+import { MobileNav } from "@/components/mobile-nav";
 import { ChannelSidebar } from "@/components/channel/channel-sidebar";
 import { ChannelHero } from "@/components/channel/channel-hero";
 import {
@@ -37,7 +38,7 @@ export default async function ChannelPage() {
         <ChannelSidebar subscriptions={subscriptions} />
         <main className="flex min-w-0 flex-1 flex-col">
           <ChannelHero channel={content.channel} />
-          <div className="flex w-full flex-col gap-10 p-6">
+          <div className="flex w-full flex-col gap-8 p-3 pb-20 md:gap-10 md:p-6">
             {content.featured && <FeaturedVideo video={content.featured} />}
             <ChannelUploads
               uploads={content.uploads}
@@ -47,6 +48,7 @@ export default async function ChannelPage() {
           </div>
         </main>
       </div>
+      <MobileNav />
     </div>
   );
 }

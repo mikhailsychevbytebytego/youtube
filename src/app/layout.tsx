@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   description: "A toy YouTube reimplementation.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{

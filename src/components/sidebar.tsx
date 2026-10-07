@@ -67,7 +67,7 @@ export function Sidebar({
   activeItem?: string;
 }) {
   return (
-    <aside className="flex w-60 shrink-0 flex-col gap-3 overflow-y-auto px-3 pt-3">
+    <aside className="hidden w-60 shrink-0 flex-col gap-3 overflow-y-auto px-3 pt-3 md:flex">
       <nav className="flex w-full flex-col gap-1">
         {mainNav.map((item) => (
           <NavItem

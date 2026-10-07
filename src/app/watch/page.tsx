@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { WatchHeader } from "@/components/watch/watch-header";
-import { WatchSidebar } from "@/components/watch/watch-sidebar";
+import { WatchChrome } from "@/components/watch/watch-chrome";
 import { VideoPlayer } from "@/components/watch/video-player";
 import { VideoDetails } from "@/components/watch/video-details";
 import { WatchRightRail } from "@/components/watch/watch-right-rail";
@@ -40,19 +39,21 @@ export default async function WatchPage({ searchParams }: WatchPageProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <WatchHeader theme={theme} />
-      <div className="flex flex-1 items-start">
-        <WatchSidebar subscriptions={subscriptions} />
-        <main className="flex min-w-0 flex-1 flex-col gap-3 p-6">
-          <VideoPlayer video={video} />
-          <VideoDetails video={video} />
-        </main>
-        <WatchRightRail
-          upNext={upNext}
-          kittenShorts={kittenShorts}
-          catShorts={catShorts}
-        />
-      </div>
+      <WatchChrome theme={theme} subscriptions={subscriptions}>
+        <div className="flex flex-1 flex-col lg:flex-row lg:items-start">
+          <main className="flex min-w-0 flex-1 flex-col gap-3 p-0 lg:p-6">
+            <VideoPlayer video={video} />
+            <div className="px-3 lg:px-0">
+              <VideoDetails video={video} />
+            </div>
+          </main>
+          <WatchRightRail
+            upNext={upNext}
+            kittenShorts={kittenShorts}
+            catShorts={catShorts}
+          />
+        </div>
+      </WatchChrome>
     </div>
   );
 }

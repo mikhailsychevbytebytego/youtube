@@ -6,20 +6,22 @@ import type { Theme } from "@/lib/theme";
 
 export function Header({ theme }: { theme: Theme }) {
   return (
-    <header className="flex h-14 w-full shrink-0 items-center justify-between px-6">
-      <div className="flex items-center gap-6">
-        <button aria-label="Menu">
+    <header className="flex h-14 w-full shrink-0 items-center justify-between px-3 md:px-6">
+      <div className="flex items-center gap-3 md:gap-6">
+        <button aria-label="Menu" className="hidden min-h-11 min-w-11 items-center justify-center md:flex">
           <Menu className="size-6 text-foreground" />
         </button>
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-6 w-[34px] items-center justify-center rounded-md bg-[#ff0000]">
             <Play className="size-3 fill-white text-white" />
           </div>
-          <span className="text-xl font-bold text-foreground">MeowTube</span>
+          <span className="hidden text-xl font-bold text-foreground sm:inline">
+            MeowTube
+          </span>
         </Link>
       </div>
 
-      <div className="flex w-[720px] items-center gap-3">
+      <div className="hidden w-[720px] items-center gap-3 md:flex">
         <div className="flex h-10 flex-1 items-center overflow-hidden rounded-full border border-border">
           <input
             type="text"
@@ -41,12 +43,18 @@ export function Header({ theme }: { theme: Theme }) {
         </button>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-1 md:gap-5">
+        <button
+          aria-label="Search"
+          className="flex min-h-11 min-w-11 items-center justify-center md:hidden"
+        >
+          <Search className="size-6 text-foreground" />
+        </button>
         <ThemeToggle initialTheme={theme} />
-        <button aria-label="Create">
+        <button aria-label="Create" className="hidden md:block">
           <CircleX className="size-6 text-foreground" />
         </button>
-        <button aria-label="Notifications">
+        <button aria-label="Notifications" className="hidden md:block">
           <BellDot className="size-6 text-foreground" />
         </button>
         <div className="relative size-8 overflow-hidden rounded-full">

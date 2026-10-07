@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { Header } from "@/components/header";
+import { MobileNav } from "@/components/mobile-nav";
 import { Sidebar } from "@/components/sidebar";
 import { FilterChips } from "@/components/filter-chips";
 import { VideoCard } from "@/components/video-card";
@@ -22,10 +23,10 @@ export default async function Home() {
       <Header theme={theme} />
       <div className="flex flex-1 items-start">
         <Sidebar subscriptions={subscriptions} />
-        <main className="flex min-w-0 flex-1 flex-col gap-6 px-6 pt-3 pb-10">
+        <main className="flex min-w-0 flex-1 flex-col gap-6 px-3 pt-3 pb-20 md:px-6 md:pb-10">
           <FilterChips />
 
-          <div className="grid w-full grid-cols-4 gap-x-4 gap-y-10">
+          <div className="grid w-full grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
             {videos.map((video) => (
               <VideoCard key={video.id} video={video} />
             ))}
@@ -39,7 +40,7 @@ export default async function Home() {
               </div>
               <h2 className="text-xl font-bold text-foreground">Cat Shorts</h2>
             </div>
-            <div className="grid w-full grid-cols-6 gap-4">
+            <div className="grid w-full grid-cols-3 gap-3 md:grid-cols-6 md:gap-4">
               {shorts.map((short) => (
                 <ShortsCard key={short.id} short={short} />
               ))}
@@ -47,6 +48,7 @@ export default async function Home() {
           </section>
         </main>
       </div>
+      <MobileNav />
     </div>
   );
 }

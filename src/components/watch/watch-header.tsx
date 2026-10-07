@@ -7,16 +7,25 @@ import type { Theme } from "@/lib/theme";
 export function WatchHeader({
   theme,
   searchPlaceholder = "Search cats...",
+  menuOpen = false,
+  onMenuClick,
 }: {
   theme: Theme;
   searchPlaceholder?: string;
+  menuOpen?: boolean;
+  onMenuClick?: () => void;
 }) {
   return (
-    <header className="flex h-14 w-full shrink-0 items-center justify-between px-6">
-      <div className="flex items-center gap-6">
+    <header className="relative z-50 flex h-14 w-full shrink-0 items-center justify-between bg-background px-3 md:px-6">
+      <div className="flex items-center gap-3 md:gap-6">
         <button
+          type="button"
           aria-label="Menu"
-          className="flex size-10 items-center justify-center"
+          aria-expanded={onMenuClick ? menuOpen : undefined}
+          onClick={onMenuClick}
+          className={`min-h-11 min-w-11 items-center justify-center ${
+            onMenuClick ? "flex" : "hidden md:flex"
+          }`}
         >
           <Menu className="size-6 text-foreground" />
         </button>
@@ -24,11 +33,13 @@ export function WatchHeader({
           <div className="flex h-6 w-[34px] items-center justify-center rounded-md bg-[#ff0000]">
             <Play className="size-3 fill-white text-white" />
           </div>
-          <span className="text-xl font-bold text-foreground">MeowTube</span>
+          <span className="hidden text-xl font-bold text-foreground sm:inline">
+            MeowTube
+          </span>
         </Link>
       </div>
 
-      <div className="flex w-[720px] items-center gap-3">
+      <div className="hidden w-[720px] items-center gap-3 md:flex">
         <div className="flex h-10 flex-1 items-center overflow-hidden rounded-full border border-border">
           <input
             type="text"
@@ -50,15 +61,21 @@ export function WatchHeader({
         </button>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1 md:gap-3">
+        <button
+          aria-label="Search"
+          className="flex min-h-11 min-w-11 items-center justify-center md:hidden"
+        >
+          <Search className="size-6 text-foreground" />
+        </button>
         <ThemeToggle initialTheme={theme} />
-        <button className="flex items-center gap-2 rounded-full border border-border px-3 py-2">
+        <button className="hidden items-center gap-2 rounded-full border border-border px-3 py-2 md:flex">
           <Plus className="size-5 text-foreground" />
           <span className="text-sm font-semibold text-foreground">Create</span>
         </button>
         <button
           aria-label="Notifications"
-          className="flex size-10 items-center justify-center"
+          className="hidden size-10 items-center justify-center md:flex"
         >
           <span className="relative">
             <Bell className="size-6 text-foreground" />

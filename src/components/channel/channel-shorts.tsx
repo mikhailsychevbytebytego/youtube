@@ -10,9 +10,12 @@ export function ChannelShorts({ shorts }: { shorts: Video[] }) {
         <Shirt className="size-6 text-foreground" />
         <h2 className="text-xl font-bold text-foreground">Cat Shorts</h2>
       </div>
-      <div className="relative flex w-full items-start gap-4">
+      <div className="relative flex w-full items-start gap-4 overflow-x-auto">
         {shorts.map((short) => (
-          <div key={short.id} className="flex min-w-0 flex-1 flex-col gap-2">
+          <div
+            key={short.id}
+            className="flex w-28 min-w-28 flex-col gap-2 md:min-w-0 md:w-auto md:flex-1"
+          >
             <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl">
               <Image
                 src={short.thumbnailUrl ?? "/images/avatar-user.png"}
@@ -34,7 +37,7 @@ export function ChannelShorts({ shorts }: { shorts: Video[] }) {
         ))}
         <button
           aria-label="Scroll shorts"
-          className="absolute top-[calc(50%-20px)] -right-5 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background drop-shadow-[0px_4px_4px_rgba(0,0,0,0.1)]"
+          className="absolute top-[calc(50%-20px)] -right-5 hidden size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background drop-shadow-[0px_4px_4px_rgba(0,0,0,0.1)] md:flex"
         >
           <ChevronRight className="size-5 text-foreground" />
         </button>

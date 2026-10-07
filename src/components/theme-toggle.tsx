@@ -27,7 +27,7 @@ export function ThemeToggle({ initialTheme }: { initialTheme: Theme }) {
       aria-label={
         theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
       }
-      className="flex size-8 items-center justify-center rounded-full hover:bg-surface"
+      className="flex size-11 items-center justify-center rounded-full hover:bg-surface md:size-8"
     >
       {theme === "dark" ? (
         <Sun className="size-6 text-foreground" />

@@ -89,7 +89,7 @@ function ShortsShelf({
           View all
         </a>
       </div>
-      <div className="relative flex w-full gap-3">
+      <div className="relative flex w-full gap-3 overflow-x-auto">
         {shorts.map((short) => (
           <div
             key={short.id}
@@ -133,7 +133,7 @@ export function WatchRightRail({
   catShorts: Video[];
 }) {
   return (
-    <aside className="flex w-[402px] shrink-0 flex-col gap-6 pt-6 pr-6">
+    <aside className="flex w-full shrink-0 flex-col gap-6 px-3 pb-6 pt-4 lg:w-[402px] lg:px-0 lg:pb-0 lg:pt-6 lg:pr-6">
       <UpNextList videos={upNext} />
       <ShortsShelf
         title="Kittens"
