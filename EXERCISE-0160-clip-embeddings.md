@@ -1,6 +1,6 @@
 # Exercise: Store CLIP embeddings for videos with pgvector
 
-Continue from [EXERCISE-0140](EXERCISE-0140-cloudflare-media.md): videos now live on Cloudflare, but finding them still means exact-match SQL on titles. Lay the groundwork for semantic search — have Agent enable pgvector on Supabase and store CLIP embeddings for each video's title, description, and thumbnail right on the `videos` row. CLIP maps text and images into one shared vector space, so a text query can later be compared against thumbnails and vice versa.
+Continue from [EXERCISE-0150](EXERCISE-0150-ASSIGNMENT-03-mweb.md): videos now live on Cloudflare, but finding them still means exact-match SQL on titles. Lay the groundwork for semantic search — have Agent enable pgvector on Supabase and store CLIP embeddings for each video's title, description, and thumbnail right on the `videos` row. CLIP maps text and images into one shared vector space, so a text query can later be compared against thumbnails and vice versa.
 
 Prerequisite: none beyond the existing setup — embeddings run locally via transformers.js, so there's no API key or per-call cost. The first run downloads the CLIP model (~100 MB, cached afterwards).
 
