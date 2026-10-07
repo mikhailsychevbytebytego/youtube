@@ -26,9 +26,11 @@ Then read `EXERCISE-0010-nextjs-setup.md` on that branch.
 The finished application is on **`0220-ai-visual-testing`**.
 
 Week 1 ends at `0040-channel-page`. Two homework assignments follow it (`0050`, `0060`)
-before the course moves onto Supabase. Zip snapshots of those states ship as GitHub
-Release assets (`final.zip` / `assignment.zip` = end of week 1; `solution.zip` = both
-assignments done).
+before the course moves onto Supabase. Week 2 ends at `0140-cloudflare-media`. Zip
+snapshots ship as GitHub Release assets:
+
+- `week-1`: `final.zip` / `assignment.zip` (end of week 1) and `solution.zip` (both assignments done)
+- `week-2`: `week2-end.zip` (through Cloudflare media)
 
 ---
 
