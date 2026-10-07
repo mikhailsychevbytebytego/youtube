@@ -23,11 +23,11 @@ npm install
 
 Then read `EXERCISE-0010-nextjs-setup.md` on that branch.
 
-The finished application is on **`0220-ai-visual-testing`**.
+The finished application is on **`0230-ai-visual-testing`**.
 
 Week 1 ends at `0040-channel-page`. Two homework assignments follow it (`0050`, `0060`)
-before the course moves onto Supabase. Week 2 ends at `0140-cloudflare-media`. Zip
-snapshots ship as GitHub Release assets:
+before the course moves onto Supabase. Week 2 ends at `0140-cloudflare-media`. Assignment
+3 (`0150`) follows it before CLIP. Zip snapshots ship as GitHub Release assets:
 
 - `week-1`: `final.zip` / `assignment.zip` (end of week 1) and `solution.zip` (both assignments done)
 - `week-2`: `final.zip` (through Cloudflare media)
@@ -105,15 +105,16 @@ exactly what one exercise adds.
 | `0110-video-generation` | Generate fake videos with scripts and thumbnails |
 | `0120-actual-video-creation` | Create real videos with an image-to-video model |
 | `0130-better-auth` | Add Better Auth on the users table and guard `/admin` |
-| `0140-cloudflare-media` | Serve mock media from Cloudflare Images and Stream |
-| `0150-clip-embeddings` | Store CLIP embeddings for videos with pgvector |
-| `0160-semantic-search` | Semantic search over CLIP embeddings *(mainline)* |
-| `0170-related-videos` | Build the Up Next rail from CLIP similarity |
-| `0180-appearance-menu` | Avatar dropdown with an Appearance submenu |
-| `0190-video-autoplay-and-watch-time` | Autoplay, watch time tracking, admin analytics |
-| `0200-video-generation-caching-and-cleanup` | Video generation caching and mock data cleanup |
-| `0210-channel-subscriptions-and-cat-confetti` | Subscriptions, subscription feed, cat confetti |
-| `0220-ai-visual-testing` | AI-driven visual & E2E testing — **the complete project** |
+| `0140-cloudflare-media` | Serve mock media from Cloudflare Images and Stream — **end of week 2** |
+| `0150-assignment-03-mweb` | Homework: mobile web (mweb) layout |
+| `0160-clip-embeddings` | Store CLIP embeddings for videos with pgvector |
+| `0170-semantic-search` | Semantic search over CLIP embeddings *(mainline)* |
+| `0180-related-videos` | Build the Up Next rail from CLIP similarity |
+| `0190-appearance-menu` | Avatar dropdown with an Appearance submenu |
+| `0200-video-autoplay-and-watch-time` | Autoplay, watch time tracking, admin analytics |
+| `0210-video-generation-caching-and-cleanup` | Video generation caching and mock data cleanup |
+| `0220-channel-subscriptions-and-cat-confetti` | Subscriptions, subscription feed, cat confetti |
+| `0230-ai-visual-testing` | AI-driven visual & E2E testing — **the complete project** |
 
 ### The four home-page variants at step 0020
 
@@ -130,23 +131,23 @@ what the agent produces:
 
 Pick whichever you like, but continue the course from `0030-watch-page`.
 
-### The two search paths at step 0160
+### The two search paths at step 0170
 
-Both branches fork from `0150-clip-embeddings` and wire the same `/search` page and header box. They differ only in how results are ranked:
+Both branches fork from `0160-clip-embeddings` and wire the same `/search` page and header box. They differ only in how results are ranked:
 
 | Branch | Approach |
 | --- | --- |
-| `0160-semantic-search` | CLIP embeddings — **this is the mainline; `0170` continues from it** |
-| `0160-tsquery-search` | Postgres `tsvector` / `tsquery` lexical search |
+| `0170-semantic-search` | CLIP embeddings — **this is the mainline; `0180` continues from it** |
+| `0170-tsquery-search` | Postgres `tsvector` / `tsquery` lexical search |
 
-`0160-tsquery-search` is a side path so you can compare token matching against meaning. Continue the course from `0160-semantic-search`.
+`0170-tsquery-search` is a side path so you can compare token matching against meaning. Continue the course from `0170-semantic-search`.
 
 ### Branches that are not part of the course
 
 - `main` — this signpost. No code.
 - `archive/pre-course-demo` — an early standalone prototype with completely unrelated git
   history, built before most of the course existed. It is **not** the finished project and
-  is kept only for reference. The finished project is `0220-ai-visual-testing`.
+  is kept only for reference. The finished project is `0230-ai-visual-testing`.
 
 ---
 
@@ -157,11 +158,11 @@ Free tiers are sufficient throughout, with one exception noted below.
 | Service | First needed at | Used for |
 | --- | --- | --- |
 | [Figma](https://figma.com) | `0020` | Design source for the page-building exercises. Requires a registered account **and an activated subscription plan** for agent operations — see exercise 0020. The `0020-alt-static-home`, `0020-pen-home`, and `0020-prompt-home` variants avoid Figma entirely. |
-| [Supabase](https://supabase.com) | `0070` | Hosted Postgres (plus `pgvector` from `0150`). |
+| [Supabase](https://supabase.com) | `0070` | Hosted Postgres (plus `pgvector` from `0160`). |
 | [fal.ai](https://fal.ai) | `0090` | LLM text, image, and video generation. Pay-as-you-go credits. |
 | [Cloudflare](https://cloudflare.com) | `0140` | Images and Stream for media hosting. |
 
-No account is needed for the testing exercise (`0220`) — it runs a CLIP model locally.
+No account is needed for the testing exercise (`0230`) — it runs a CLIP model locally.
 
 ---
 
@@ -179,9 +180,9 @@ do not need all of this on day one.
 | `BETTER_AUTH_URL` | `0130` | `http://localhost:3000` in development. |
 | `CLOUDFLARE_ACCOUNT_ID` | `0140` | Cloudflare account identifier. |
 | `CLOUDFLARE_STREAM_API_TOKEN` | `0140` | Token with Stream and Images permissions. |
-| `ADMIN_EMAIL` | `0190` | Seed admin user for `npm run db:admin`. |
-| `ADMIN_NAME` | `0190` | Seed admin user. |
-| `ADMIN_PASSWORD` | `0190` | Seed admin user. |
+| `ADMIN_EMAIL` | `0200` | Seed admin user for `npm run db:admin`. |
+| `ADMIN_NAME` | `0200` | Seed admin user. |
+| `ADMIN_PASSWORD` | `0200` | Seed admin user. |
 
 `.env` is gitignored — never commit real keys.
 
@@ -190,7 +191,7 @@ do not need all of this on day one.
 ## 6. Running the finished project
 
 ```bash
-git checkout 0220-ai-visual-testing
+git checkout 0230-ai-visual-testing
 npm install
 # create .env at the repo root with the variables from section 5
 npm run db:push          # create the schema
