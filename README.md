@@ -23,14 +23,17 @@ npm install
 
 Then read `EXERCISE-0010-nextjs-setup.md` on that branch.
 
-The finished application is on **`0230-ai-visual-testing`**.
+The finished application is on **`0250-ai-visual-testing`**.
 
 Week 1 ends at `0040-channel-page`. Two homework assignments follow it (`0050`, `0060`)
 before the course moves onto Supabase. Week 2 ends at `0140-cloudflare-media`. Assignment
-3 (`0150`) follows it before CLIP. Zip snapshots ship as GitHub Release assets:
+3 (`0150`) follows it before CLIP. Week 3 ends at `0180-related-videos`. Assignments 4
+and 5 (`0190`, `0200`) follow it before the appearance menu. Zip snapshots ship as
+GitHub Release assets:
 
 - `week-1`: `final.zip` / `assignment.zip` (end of week 1) and `solution.zip` (both assignments done)
 - `week-2`: `final.zip` (through Cloudflare media) and `solution.zip` (assignment 3 / mweb done)
+- `week-3`: `final.zip` (through related videos) and `solution.zip` (assignments 4 and 5 done)
 
 ---
 
@@ -109,12 +112,14 @@ exactly what one exercise adds.
 | `0150-assignment-03-mweb` | Homework: mobile web (mweb) layout |
 | `0160-clip-embeddings` | Store CLIP embeddings for videos with pgvector |
 | `0170-semantic-search` | Semantic search over CLIP embeddings *(mainline)* |
-| `0180-related-videos` | Build the Up Next rail from CLIP similarity |
-| `0190-appearance-menu` | Avatar dropdown with an Appearance submenu |
-| `0200-video-autoplay-and-watch-time` | Autoplay, watch time tracking, admin analytics |
-| `0210-video-generation-caching-and-cleanup` | Video generation caching and mock data cleanup |
-| `0220-channel-subscriptions-and-cat-confetti` | Subscriptions, subscription feed, cat confetti |
-| `0230-ai-visual-testing` | AI-driven visual & E2E testing — **the complete project** |
+| `0180-related-videos` | Build the Up Next rail from CLIP similarity — **end of week 3 / live session** |
+| `0190-assignment-04-endless-shorts` | Homework: endless Shorts feed from CLIP neighbors |
+| `0200-assignment-05-likes` | Homework: likes as a recommendation signal |
+| `0210-appearance-menu` | Avatar dropdown with an Appearance submenu |
+| `0220-video-autoplay-and-watch-time` | Autoplay, watch time tracking, admin analytics |
+| `0230-video-generation-caching-and-cleanup` | Video generation caching and mock data cleanup |
+| `0240-channel-subscriptions-and-cat-confetti` | Subscriptions, subscription feed, cat confetti |
+| `0250-ai-visual-testing` | AI-driven visual & E2E testing — **the complete project** |
 
 ### The four home-page variants at step 0020
 
@@ -147,7 +152,7 @@ Both branches fork from `0160-clip-embeddings` and wire the same `/search` page 
 - `main` — this signpost. No code.
 - `archive/pre-course-demo` — an early standalone prototype with completely unrelated git
   history, built before most of the course existed. It is **not** the finished project and
-  is kept only for reference. The finished project is `0230-ai-visual-testing`.
+  is kept only for reference. The finished project is `0250-ai-visual-testing`.
 
 ---
 
@@ -162,7 +167,7 @@ Free tiers are sufficient throughout, with one exception noted below.
 | [fal.ai](https://fal.ai) | `0090` | LLM text, image, and video generation. Pay-as-you-go credits. |
 | [Cloudflare](https://cloudflare.com) | `0140` | Images and Stream for media hosting. |
 
-No account is needed for the testing exercise (`0230`) — it runs a CLIP model locally.
+No account is needed for the testing exercise (`0250`) — it runs a CLIP model locally.
 
 ---
 
@@ -180,9 +185,9 @@ do not need all of this on day one.
 | `BETTER_AUTH_URL` | `0130` | `http://localhost:3000` in development. |
 | `CLOUDFLARE_ACCOUNT_ID` | `0140` | Cloudflare account identifier. |
 | `CLOUDFLARE_STREAM_API_TOKEN` | `0140` | Token with Stream and Images permissions. |
-| `ADMIN_EMAIL` | `0200` | Seed admin user for `npm run db:admin`. |
-| `ADMIN_NAME` | `0200` | Seed admin user. |
-| `ADMIN_PASSWORD` | `0200` | Seed admin user. |
+| `ADMIN_EMAIL` | `0220` | Seed admin user for `npm run db:admin`. |
+| `ADMIN_NAME` | `0220` | Seed admin user. |
+| `ADMIN_PASSWORD` | `0220` | Seed admin user. |
 
 `.env` is gitignored — never commit real keys.
 
@@ -191,11 +196,12 @@ do not need all of this on day one.
 ## 6. Running the finished project
 
 ```bash
-git checkout 0230-ai-visual-testing
+git checkout 0250-ai-visual-testing
 npm install
 # create .env at the repo root with the variables from section 5
 npm run db:push          # create the schema
 npm run db:seed          # seed baseline data
+npm run db:embed         # CLIP vectors for the catalog (needed for search, related, Shorts)
 npm run db:admin         # create the admin user from ADMIN_* vars
 npm run dev
 ```
