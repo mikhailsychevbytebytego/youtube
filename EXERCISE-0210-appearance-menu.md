@@ -1,6 +1,6 @@
 # Exercise: Appearance menu in the avatar dropdown
 
-Continue from [EXERCISE-0180](EXERCISE-0180-related-videos.md): MewTube already has a cookie-backed light/dark theme from the week-1 assignment, but the only control is a header toggle. Have Agent replace that toggle with an avatar dropdown that includes an Appearance submenu.
+Continue from [EXERCISE-0200](EXERCISE-0200-ASSIGNMENT-05-likes.md): MewTube already has a cookie-backed light/dark theme from the week-1 assignment, but the only control is a header toggle. Have Agent replace that toggle with an avatar dropdown that includes an Appearance submenu.
 
 Prerequisite:
 
