@@ -4,10 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ShortItem } from "@/components/shorts/short-item";
 import type { VideoWithChannel } from "@/lib/queries";
 
+export type FeedShort = VideoWithChannel & { liked?: boolean };
+
 export function ShortsFeed({
   initialShorts,
 }: {
-  initialShorts: VideoWithChannel[];
+  initialShorts: FeedShort[];
 }) {
   const [shorts, setShorts] = useState(initialShorts);
   const shortsRef = useRef(shorts);
@@ -30,7 +32,7 @@ export function ShortsFeed({
         `/api/shorts/next?from=${last.id}&exclude=${exclude}`,
       );
       if (!response.ok) return;
-      const data = (await response.json()) as { short: VideoWithChannel | null };
+      const data = (await response.json()) as { short: FeedShort | null };
       if (data.short) {
         setShorts((prev) => [...prev, data.short!]);
       }
@@ -73,6 +75,7 @@ export function ShortsFeed({
         <ShortItem
           key={`${short.id}-${index}`}
           short={short}
+          liked={short.liked}
           rootRef={index === shorts.length - 1 ? lastItemRef : undefined}
         />
       ))}

@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { videos } from "@/db/schema";
-import { forClientVideo, pickNextShort } from "@/lib/queries";
+import { auth } from "@/lib/auth";
+import {
+  forClientVideo,
+  getTasteEmbedding,
+  isVideoLiked,
+  pickNextShort,
+} from "@/lib/queries";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -31,10 +37,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Short not found" }, { status: 404 });
   }
 
-  const next = await pickNextShort(current, exclude);
+  const session = await auth.api.getSession({ headers: request.headers });
+  const tasteEmbedding = session?.user
+    ? await getTasteEmbedding(session.user.id)
+    : null;
+
+  const next = await pickNextShort(current, exclude, { tasteEmbedding });
   if (!next) {
     return NextResponse.json({ short: null });
   }
 
-  return NextResponse.json({ short: forClientVideo(next) });
+  const liked = session?.user
+    ? await isVideoLiked(session.user.id, next.id)
+    : false;
+
+  return NextResponse.json({
+    short: { ...forClientVideo(next), liked },
+  });
 }

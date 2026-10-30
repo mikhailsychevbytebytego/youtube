@@ -36,7 +36,12 @@ export default function SignInPage() {
       setError(result.error.message ?? "Something went wrong, try again.");
       return;
     }
-    router.push("/admin");
+    const nextParam = new URLSearchParams(window.location.search).get("next");
+    const next =
+      nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
+        ? nextParam
+        : "/admin";
+    router.push(next);
   }
 
   return (

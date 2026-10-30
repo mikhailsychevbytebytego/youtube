@@ -5,10 +5,10 @@ import {
   MessageCircle,
   Share2,
   ThumbsDown,
-  ThumbsUp,
 } from "lucide-react";
+import { LikeButton } from "@/components/like-button";
 import type { VideoWithChannel } from "@/lib/queries";
-import { formatCount, formatViews } from "@/lib/format";
+import { formatViews } from "@/lib/format";
 
 function ActionButton({
   label,
@@ -34,12 +34,21 @@ function ActionButton({
   );
 }
 
-function ShortActions({ short }: { short: VideoWithChannel }) {
+function ShortActions({
+  short,
+  liked,
+}: {
+  short: VideoWithChannel;
+  liked?: boolean;
+}) {
   return (
     <>
-      <ActionButton label="Like" count={formatCount(short.likeCount)}>
-        <ThumbsUp className="size-5 text-foreground" />
-      </ActionButton>
+      <LikeButton
+        videoId={short.id}
+        initialLiked={liked}
+        initialCount={short.likeCount}
+        variant="short"
+      />
       <ActionButton label="Dislike">
         <ThumbsDown className="size-5 text-foreground" />
       </ActionButton>
@@ -58,9 +67,11 @@ function ShortActions({ short }: { short: VideoWithChannel }) {
 
 export function ShortItem({
   short,
+  liked,
   rootRef,
 }: {
   short: VideoWithChannel;
+  liked?: boolean;
   rootRef?: Ref<HTMLElement>;
 }) {
   return (
@@ -100,12 +111,12 @@ export function ShortItem({
           <p className="text-xs text-white/70">{formatViews(short.viewCount)}</p>
         </div>
         <div className="absolute right-2 bottom-24 flex flex-col gap-4 md:hidden">
-          <ShortActions short={short} />
+          <ShortActions short={short} liked={liked} />
         </div>
       </div>
 
       <div className="hidden h-full flex-col justify-end gap-4 pb-2 md:flex">
-        <ShortActions short={short} />
+        <ShortActions short={short} liked={liked} />
       </div>
     </section>
   );

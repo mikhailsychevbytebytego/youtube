@@ -197,8 +197,30 @@ export const verifications = pgTable(
   (table) => [index("verifications_identifier_idx").on(table.identifier)],
 ).enableRLS();
 
+export const videoLikes = pgTable(
+  "video_likes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    videoId: uuid("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("video_likes_user_video_idx").on(table.userId, table.videoId),
+    index("video_likes_user_id_idx").on(table.userId),
+    index("video_likes_video_id_idx").on(table.videoId),
+  ],
+).enableRLS();
+
 export const usersRelations = relations(users, ({ many }) => ({
   channels: many(channels),
+  likes: many(videoLikes),
 }));
 
 export const channelsRelations = relations(channels, ({ one, many }) => ({
@@ -209,10 +231,22 @@ export const channelsRelations = relations(channels, ({ one, many }) => ({
   videos: many(videos),
 }));
 
-export const videosRelations = relations(videos, ({ one }) => ({
+export const videosRelations = relations(videos, ({ one, many }) => ({
   channel: one(channels, {
     fields: [videos.channelId],
     references: [channels.id],
+  }),
+  likes: many(videoLikes),
+}));
+
+export const videoLikesRelations = relations(videoLikes, ({ one }) => ({
+  user: one(users, {
+    fields: [videoLikes.userId],
+    references: [users.id],
+  }),
+  video: one(videos, {
+    fields: [videoLikes.videoId],
+    references: [videos.id],
   }),
 }));
 
@@ -222,3 +256,5 @@ export type Channel = typeof channels.$inferSelect;
 export type NewChannel = typeof channels.$inferInsert;
 export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
+export type VideoLike = typeof videoLikes.$inferSelect;
+export type NewVideoLike = typeof videoLikes.$inferInsert;

@@ -10,6 +10,7 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
+import { LikeButton } from "@/components/like-button";
 import type { VideoWithChannel } from "@/lib/queries";
 import { formatCount, formatViews, timeAgo } from "@/lib/format";
 
@@ -21,7 +22,13 @@ const watchComment = {
   likes: "2.1K",
 };
 
-export function VideoDetails({ video }: { video: VideoWithChannel }) {
+export function VideoDetails({
+  video,
+  liked,
+}: {
+  video: VideoWithChannel;
+  liked?: boolean;
+}) {
   const lines = (video.description ?? "").split("\n");
   const hashtags = lines
     .filter((line) => line.trim().startsWith("#"))
@@ -73,12 +80,11 @@ export function VideoDetails({ video }: { video: VideoWithChannel }) {
 
         <div className="-mx-3 flex items-start gap-2 overflow-x-auto px-3 md:mx-0 md:px-0">
           <div className="flex overflow-hidden rounded-full bg-surface">
-            <button className="flex min-h-11 items-center gap-2 border-r border-border px-3 py-2">
-              <ThumbsUp className="size-5 text-foreground" />
-              <span className="text-sm font-semibold text-foreground">
-                {formatCount(video.likeCount)}
-              </span>
-            </button>
+            <LikeButton
+              videoId={video.id}
+              initialLiked={liked}
+              initialCount={video.likeCount}
+            />
             <button
               aria-label="Dislike"
               className="flex min-h-11 items-center px-3 py-2"

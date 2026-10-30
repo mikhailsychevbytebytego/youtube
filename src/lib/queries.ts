@@ -11,7 +11,13 @@ import {
   sql,
 } from "drizzle-orm";
 import { db } from "@/db";
-import { channels, videos, type Channel, type Video } from "@/db/schema";
+import {
+  channels,
+  videoLikes,
+  videos,
+  type Channel,
+  type Video,
+} from "@/db/schema";
 
 export type VideoWithChannel = Video & { channel: Channel };
 
@@ -261,29 +267,161 @@ export async function getSimilarShorts(
   }));
 }
 
+function asNumberVector(value: unknown): number[] | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const vector = value.map((entry) => Number(entry));
+  return vector.every((entry) => Number.isFinite(entry)) ? vector : null;
+}
+
+/** Mean of unit vectors, then L2-normalized. */
+export function averageEmbeddings(vectors: number[][]): number[] | null {
+  if (vectors.length === 0) return null;
+  const dimensions = vectors[0]?.length ?? 0;
+  if (dimensions === 0) return null;
+
+  const sum = new Array<number>(dimensions).fill(0);
+  for (const vector of vectors) {
+    if (vector.length !== dimensions) continue;
+    for (let i = 0; i < dimensions; i++) {
+      sum[i] += vector[i] ?? 0;
+    }
+  }
+
+  let sumOfSquares = 0;
+  for (const value of sum) sumOfSquares += value * value;
+  const magnitude = Math.sqrt(sumOfSquares) || 1;
+  return sum.map((value) => value / magnitude);
+}
+
+export async function isVideoLiked(
+  userId: string,
+  videoId: string,
+): Promise<boolean> {
+  const row = await db.query.videoLikes.findFirst({
+    where: and(eq(videoLikes.userId, userId), eq(videoLikes.videoId, videoId)),
+  });
+  return row != null;
+}
+
+/** Average title embedding of videos this user has liked. */
+export async function getTasteEmbedding(
+  userId: string,
+): Promise<number[] | null> {
+  const rows = await db
+    .select({ titleEmbedding: videos.titleEmbedding })
+    .from(videoLikes)
+    .innerJoin(videos, eq(videoLikes.videoId, videos.id))
+    .where(eq(videoLikes.userId, userId));
+
+  const vectors = rows
+    .map((row) => asNumberVector(row.titleEmbedding))
+    .filter((vector): vector is number[] => vector != null);
+
+  return averageEmbeddings(vectors);
+}
+
+async function getShortsClosestTo(
+  embedding: number[],
+  options: { poolLimit: number; excludeIds: string[] },
+): Promise<VideoWithChannel[]> {
+  const extraFilters = [
+    eq(videos.type, "short" as const),
+    eq(videos.isPublished, true),
+    isNotNull(videos.titleEmbedding),
+    ...(options.excludeIds.length > 0
+      ? [notInArray(videos.id, options.excludeIds)]
+      : []),
+  ];
+
+  const rows = await db
+    .select({
+      video: videos,
+      channel: channels,
+      dTitle: cosineDistance(videos.titleEmbedding, embedding),
+      dDesc: sql`null`,
+      dThumb: sql`null`,
+    })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(and(...extraFilters));
+
+  return fuseTextAndThumbRanks(rows, options.poolLimit).map(
+    ({ video, channel }) => ({ ...video, channel }),
+  );
+}
+
 /**
  * Next Shorts-feed item: uniform random among the top-N similar shorts,
  * skipping ids already in this session. If that pool is empty (small catalog,
  * everything already seen), sample again without the seen-filter so scrolling
- * never dead-ends.
+ * never dead-ends. When a taste embedding is present, rank by distance to that
+ * profile instead of the current short.
  */
 export async function pickNextShort(
   current: Video,
   seenIds: string[],
+  options: { tasteEmbedding?: number[] | null } = {},
 ): Promise<VideoWithChannel | null> {
   const excludeIds = seenIds.filter((id) => id !== current.id);
-  let pool = await getSimilarShorts(current, {
-    poolLimit: SHORTS_RECOMMENDATION_POOL,
-    excludeIds,
-  });
-  if (pool.length === 0) {
-    pool = await getSimilarShorts(current, {
+  const tasteEmbedding = options.tasteEmbedding ?? null;
+
+  async function poolFor(exclude: string[]) {
+    if (tasteEmbedding) {
+      return getShortsClosestTo(tasteEmbedding, {
+        poolLimit: SHORTS_RECOMMENDATION_POOL,
+        excludeIds: [current.id, ...exclude],
+      });
+    }
+    return getSimilarShorts(current, {
       poolLimit: SHORTS_RECOMMENDATION_POOL,
-      excludeIds: [],
+      excludeIds: exclude,
     });
+  }
+
+  let pool = await poolFor(excludeIds);
+  if (pool.length === 0) {
+    pool = await poolFor([]);
   }
   if (pool.length === 0) return null;
   return pool[Math.floor(Math.random() * pool.length)] ?? null;
+}
+
+export async function getRecommendedVideos(
+  userId: string,
+  limit = 4,
+): Promise<VideoWithChannel[]> {
+  const tasteEmbedding = await getTasteEmbedding(userId);
+  if (!tasteEmbedding) return [];
+
+  const liked = await db
+    .select({ videoId: videoLikes.videoId })
+    .from(videoLikes)
+    .where(eq(videoLikes.userId, userId));
+  const likedIds = liked.map((row) => row.videoId);
+
+  const rows = await db
+    .select({
+      video: videos,
+      channel: channels,
+      dTitle: cosineDistance(videos.titleEmbedding, tasteEmbedding),
+      dDesc: sql`null`,
+      dThumb: sql`null`,
+    })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(
+      and(
+        eq(videos.type, "video"),
+        eq(videos.isPublished, true),
+        isNotNull(videos.titleEmbedding),
+        ...(likedIds.length > 0 ? [notInArray(videos.id, likedIds)] : []),
+      ),
+    );
+
+  return fuseTextAndThumbRanks(rows, limit).map(({ video, channel }) => ({
+    ...video,
+    channel,
+  }));
 }
 
 export async function getChannelShorts(

@@ -1,21 +1,30 @@
 import { X } from "lucide-react";
+import { headers } from "next/headers";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { Sidebar } from "@/components/sidebar";
 import { FilterChips } from "@/components/filter-chips";
 import { VideoCard } from "@/components/video-card";
 import { ShortsCard } from "@/components/shorts-card";
+import { auth } from "@/lib/auth";
 import { getTheme } from "@/lib/get-theme";
-import { getHomeVideos, getShorts, getSidebarChannels } from "@/lib/queries";
+import {
+  getHomeVideos,
+  getRecommendedVideos,
+  getShorts,
+  getSidebarChannels,
+} from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [theme, videos, shorts, subscriptions] = await Promise.all([
+  const session = await auth.api.getSession({ headers: await headers() });
+  const [theme, videos, shorts, subscriptions, recommended] = await Promise.all([
     getTheme(),
     getHomeVideos(8),
     getShorts(6),
     getSidebarChannels(4),
+    session?.user ? getRecommendedVideos(session.user.id, 4) : [],
   ]);
 
   return (
@@ -25,6 +34,19 @@ export default async function Home() {
         <Sidebar subscriptions={subscriptions} />
         <main className="flex min-w-0 flex-1 flex-col gap-6 px-3 pt-3 pb-20 md:px-6 md:pb-10">
           <FilterChips />
+
+          {recommended.length > 0 ? (
+            <section className="flex w-full flex-col gap-4">
+              <h2 className="text-xl font-bold text-foreground">
+                Recommended for you
+              </h2>
+              <div className="grid w-full grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+                {recommended.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <div className="grid w-full grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
             {videos.map((video) => (
