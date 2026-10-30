@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { Sidebar } from "@/components/sidebar";
-import { ShortItem } from "@/components/shorts/short-item";
+import { ShortsFeed } from "@/components/shorts/shorts-feed";
 import { getTheme } from "@/lib/get-theme";
-import { getShorts, getSidebarChannels } from "@/lib/queries";
+import { forClientVideo, getShorts, getSidebarChannels } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Cat Shorts - MewTube",
@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ShortsPage() {
-  const [theme, shorts, subscriptions] = await Promise.all([
+  const [theme, starter, subscriptions] = await Promise.all([
     getTheme(),
-    getShorts(12),
+    getShorts(1),
     getSidebarChannels(4),
   ]);
 
@@ -28,10 +28,8 @@ export default async function ShortsPage() {
           container has nothing to snap against. */}
       <div className="flex min-h-0 flex-1">
         <Sidebar subscriptions={subscriptions} activeItem="Shorts" />
-        <main className="h-full flex-1 snap-y snap-mandatory overflow-y-auto overscroll-contain">
-          {shorts.map((short) => (
-            <ShortItem key={short.id} short={short} />
-          ))}
+        <main className="h-full min-h-0 flex-1">
+          <ShortsFeed initialShorts={starter.map(forClientVideo)} />
         </main>
       </div>
       <MobileNav />

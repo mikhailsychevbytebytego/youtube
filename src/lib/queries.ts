@@ -7,6 +7,7 @@ import {
   gt,
   isNotNull,
   ne,
+  notInArray,
   sql,
 } from "drizzle-orm";
 import { db } from "@/db";
@@ -15,6 +16,16 @@ import { channels, videos, type Channel, type Video } from "@/db/schema";
 export type VideoWithChannel = Video & { channel: Channel };
 
 export type SidebarChannel = Channel & { isLive: boolean; hasNew: boolean };
+
+/** Drop CLIP vectors before sending a row to the client. */
+export function forClientVideo(video: VideoWithChannel): VideoWithChannel {
+  return {
+    ...video,
+    titleEmbedding: null,
+    descriptionEmbedding: null,
+    thumbnailEmbedding: null,
+  };
+}
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -192,6 +203,87 @@ export async function getRelatedVideos(
     ...video,
     channel,
   }));
+}
+
+/** How many nearest shorts to sample from when picking the next feed item. */
+export const SHORTS_RECOMMENDATION_POOL = 5;
+
+/**
+ * Shorts related to the current one, ranked the same way as `getRelatedVideos`
+ * (same-modality CLIP distances, fused with RRF). Falls back to view-count
+ * order when the current short has no embeddings.
+ */
+export async function getSimilarShorts(
+  current: Video,
+  options: { poolLimit?: number; excludeIds?: string[] } = {},
+): Promise<VideoWithChannel[]> {
+  const poolLimit = options.poolLimit ?? SHORTS_RECOMMENDATION_POOL;
+  const excludeIds = (options.excludeIds ?? []).filter((id) => id !== current.id);
+
+  const extraFilters = [
+    ne(videos.id, current.id),
+    eq(videos.type, "short" as const),
+    eq(videos.isPublished, true),
+    ...(excludeIds.length > 0 ? [notInArray(videos.id, excludeIds)] : []),
+  ];
+
+  if (!current.titleEmbedding) {
+    return db.query.videos.findMany({
+      where: and(...extraFilters),
+      orderBy: desc(videos.viewCount),
+      limit: poolLimit,
+      with: { channel: true },
+    });
+  }
+
+  const rows = await db
+    .select({
+      video: videos,
+      channel: channels,
+      dTitle: cosineDistance(videos.titleEmbedding, current.titleEmbedding),
+      dDesc: current.descriptionEmbedding
+        ? cosineDistance(
+            videos.descriptionEmbedding,
+            current.descriptionEmbedding,
+          )
+        : sql`null`,
+      dThumb: current.thumbnailEmbedding
+        ? cosineDistance(videos.thumbnailEmbedding, current.thumbnailEmbedding)
+        : sql`null`,
+    })
+    .from(videos)
+    .innerJoin(channels, eq(videos.channelId, channels.id))
+    .where(and(...extraFilters, isNotNull(videos.titleEmbedding)));
+
+  return fuseTextAndThumbRanks(rows, poolLimit).map(({ video, channel }) => ({
+    ...video,
+    channel,
+  }));
+}
+
+/**
+ * Next Shorts-feed item: uniform random among the top-N similar shorts,
+ * skipping ids already in this session. If that pool is empty (small catalog,
+ * everything already seen), sample again without the seen-filter so scrolling
+ * never dead-ends.
+ */
+export async function pickNextShort(
+  current: Video,
+  seenIds: string[],
+): Promise<VideoWithChannel | null> {
+  const excludeIds = seenIds.filter((id) => id !== current.id);
+  let pool = await getSimilarShorts(current, {
+    poolLimit: SHORTS_RECOMMENDATION_POOL,
+    excludeIds,
+  });
+  if (pool.length === 0) {
+    pool = await getSimilarShorts(current, {
+      poolLimit: SHORTS_RECOMMENDATION_POOL,
+      excludeIds: [],
+    });
+  }
+  if (pool.length === 0) return null;
+  return pool[Math.floor(Math.random() * pool.length)] ?? null;
 }
 
 export async function getChannelShorts(

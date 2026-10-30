@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import Image from "next/image";
 import {
   EllipsisVertical,
@@ -55,9 +56,18 @@ function ShortActions({ short }: { short: VideoWithChannel }) {
   );
 }
 
-export function ShortItem({ short }: { short: VideoWithChannel }) {
+export function ShortItem({
+  short,
+  rootRef,
+}: {
+  short: VideoWithChannel;
+  rootRef?: Ref<HTMLElement>;
+}) {
   return (
-    <section className="relative flex h-full w-full snap-start snap-always items-center justify-center gap-4 py-0 md:py-3">
+    <section
+      ref={rootRef}
+      className="relative flex h-full w-full snap-start snap-always items-center justify-center gap-4 py-0 md:py-3"
+    >
       <div className="relative flex h-full w-full items-end overflow-hidden bg-[#0f0f0f] md:aspect-[9/16] md:w-auto md:rounded-xl">
         <Image
           src={short.thumbnailUrl ?? "/images/avatar-user.png"}
