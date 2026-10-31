@@ -81,6 +81,7 @@ export function VideoDetails({
         <div className="-mx-3 flex items-start gap-2 overflow-x-auto px-3 md:mx-0 md:px-0">
           <div className="flex overflow-hidden rounded-full bg-surface">
             <LikeButton
+              key={video.id}
               videoId={video.id}
               initialLiked={liked}
               initialCount={video.likeCount}
