@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ThumbsUp } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -22,6 +22,12 @@ export function LikeButton({
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    setLiked(initialLiked);
+    setCount(initialCount);
+    setPending(false);
+  }, [videoId, initialLiked, initialCount]);
 
   function signInRedirect() {
     const next = `${window.location.pathname}${window.location.search}`;
