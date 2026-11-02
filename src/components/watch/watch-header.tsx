@@ -76,7 +76,7 @@ export function WatchHeader({
           <Search className="size-6 text-foreground" />
         </button>
         <Link
-          href="/you"
+          href="/you/upload"
           className="hidden items-center gap-2 rounded-full border border-border px-3 py-2 md:flex"
         >
           <Plus className="size-5 text-foreground" />

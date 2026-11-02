@@ -82,12 +82,20 @@ export default async function YouPage() {
                   </h2>
                   <p className="truncate text-sm text-muted">{channel.handle}</p>
                 </div>
-                <Link
-                  href={`/channel?handle=${encodeURIComponent(channel.handle)}`}
-                  className="self-start rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-border"
-                >
-                  View channel
-                </Link>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href="/you/upload"
+                    className="self-start rounded-full bg-[#ff0000] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#e60000]"
+                  >
+                    Upload
+                  </Link>
+                  <Link
+                    href={`/channel?handle=${encodeURIComponent(channel.handle)}`}
+                    className="self-start rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-border"
+                  >
+                    View channel
+                  </Link>
+                </div>
               </div>
 
               <div className="flex flex-col gap-4">
@@ -101,10 +109,18 @@ export default async function YouPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted">
-                    This channel has no videos yet. Uploads will show up here
-                    and on the public channel page.
-                  </p>
+                  <div className="flex flex-col items-start gap-3">
+                    <p className="text-sm text-muted">
+                      This channel has no videos yet. Uploads will show up here
+                      and on the public channel page.
+                    </p>
+                    <Link
+                      href="/you/upload"
+                      className="text-sm font-semibold text-[#065fd4] hover:underline"
+                    >
+                      Upload a video
+                    </Link>
+                  </div>
                 )}
               </div>
             </section>

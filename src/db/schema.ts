@@ -114,6 +114,7 @@ export const videos = pgTable(
   (table) => [
     index("videos_channel_id_idx").on(table.channelId),
     index("videos_published_at_idx").on(table.publishedAt),
+    uniqueIndex("videos_stream_uid_idx").on(table.streamUid),
     pgPolicy("videos_select_published", {
       for: "select",
       to: [anonRole, authenticatedRole],

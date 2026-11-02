@@ -62,7 +62,7 @@ export function Header({
           <Search className="size-6 text-foreground" />
         </button>
         <Link
-          href="/you"
+          href="/you/upload"
           aria-label="Create"
           className="hidden md:block"
         >

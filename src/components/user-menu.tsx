@@ -13,6 +13,7 @@ import {
   Moon,
   Plus,
   Shield,
+  Upload,
   Sun,
   User as UserIcon,
 } from "lucide-react";
@@ -200,14 +201,24 @@ export function UserMenu({ initialTheme = "light" }: { initialTheme?: Theme }) {
                     <span className="flex-1 font-medium">You</span>
                   </Link>
                   {ownedChannel ? (
-                    <Link
-                      href={`/channel?handle=${encodeURIComponent(ownedChannel.handle)}`}
-                      onClick={() => setOpen(false)}
-                      className="flex w-full items-center gap-4 px-4 py-2.5 text-left text-sm text-foreground hover:bg-surface"
-                    >
-                      <Clapperboard className="size-5 shrink-0 text-foreground" />
-                      <span className="flex-1 font-medium">Your channel</span>
-                    </Link>
+                    <>
+                      <Link
+                        href={`/channel?handle=${encodeURIComponent(ownedChannel.handle)}`}
+                        onClick={() => setOpen(false)}
+                        className="flex w-full items-center gap-4 px-4 py-2.5 text-left text-sm text-foreground hover:bg-surface"
+                      >
+                        <Clapperboard className="size-5 shrink-0 text-foreground" />
+                        <span className="flex-1 font-medium">Your channel</span>
+                      </Link>
+                      <Link
+                        href="/you/upload"
+                        onClick={() => setOpen(false)}
+                        className="flex w-full items-center gap-4 px-4 py-2.5 text-left text-sm text-foreground hover:bg-surface"
+                      >
+                        <Upload className="size-5 shrink-0 text-foreground" />
+                        <span className="flex-1 font-medium">Upload video</span>
+                      </Link>
+                    </>
                   ) : (
                     <Link
                       href="/you/create"
