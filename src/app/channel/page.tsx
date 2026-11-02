@@ -13,6 +13,7 @@ import { ChannelShorts } from "@/components/channel/channel-shorts";
 import { auth } from "@/lib/auth";
 import { getTheme } from "@/lib/get-theme";
 import {
+  getChannelForUser,
   getChannelWithContent,
   getIsSubscribed,
   getSidebarChannels,
@@ -51,7 +52,11 @@ export default async function ChannelPage({ searchParams }: ChannelPageProps) {
   ]);
   if (!content) notFound();
 
-  const isSubscribed = await getIsSubscribed(userId, content.channel.id);
+  const owned = userId ? await getChannelForUser(userId) : null;
+  const isOwner = owned?.id === content.channel.id;
+  const isSubscribed = isOwner
+    ? false
+    : await getIsSubscribed(userId, content.channel.id);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -62,6 +67,7 @@ export default async function ChannelPage({ searchParams }: ChannelPageProps) {
           <ChannelHero
             channel={content.channel}
             initialSubscribed={isSubscribed}
+            isOwner={isOwner}
           />
           <div className="flex w-full flex-col gap-8 p-3 pb-20 md:gap-10 md:p-6">
             {content.featured && <FeaturedVideo video={content.featured} />}

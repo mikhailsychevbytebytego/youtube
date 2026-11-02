@@ -7,8 +7,11 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Clapperboard,
+  Library,
   LogOut,
   Moon,
+  Plus,
   Shield,
   Sun,
   User as UserIcon,
@@ -24,13 +27,42 @@ const appearanceOptions = [
   { value: "dark" as const, label: "Dark theme", icon: Moon },
 ];
 
+type OwnedChannel = {
+  id: string;
+  name: string;
+  handle: string;
+  avatarUrl: string | null;
+};
+
 export function UserMenu({ initialTheme = "light" }: { initialTheme?: Theme }) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<MenuView>("main");
   const [theme, setThemeState] = useState<Theme>(initialTheme);
+  const [ownedChannel, setOwnedChannel] = useState<OwnedChannel | null>(null);
   const [, startTransition] = useTransition();
   const rootRef = useRef<HTMLDivElement>(null);
   const { data: session } = authClient.useSession();
+
+  useEffect(() => {
+    if (!session?.user) {
+      setOwnedChannel(null);
+      return;
+    }
+
+    let cancelled = false;
+    fetch("/api/me/channel")
+      .then((response) => (response.ok ? response.json() : { channel: null }))
+      .then((body: { channel?: OwnedChannel | null }) => {
+        if (!cancelled) setOwnedChannel(body.channel ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setOwnedChannel(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user]);
 
   useEffect(() => {
     if (!open) return;
@@ -117,6 +149,23 @@ export function UserMenu({ initialTheme = "light" }: { initialTheme?: Theme }) {
                         Admin Account
                       </span>
                     )}
+                    {ownedChannel ? (
+                      <Link
+                        href={`/channel?handle=${encodeURIComponent(ownedChannel.handle)}`}
+                        onClick={() => setOpen(false)}
+                        className="mt-1 block text-sm text-[#065fd4] hover:underline"
+                      >
+                        View your channel
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/you/create"
+                        onClick={() => setOpen(false)}
+                        className="mt-1 block text-sm text-[#065fd4] hover:underline"
+                      >
+                        Create a channel
+                      </Link>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -139,6 +188,38 @@ export function UserMenu({ initialTheme = "light" }: { initialTheme?: Theme }) {
               )}
 
               <div className="my-2 border-t border-menu-border" />
+
+              {user && (
+                <>
+                  <Link
+                    href="/you"
+                    onClick={() => setOpen(false)}
+                    className="flex w-full items-center gap-4 px-4 py-2.5 text-left text-sm text-foreground hover:bg-surface"
+                  >
+                    <Library className="size-5 shrink-0 text-foreground" />
+                    <span className="flex-1 font-medium">You</span>
+                  </Link>
+                  {ownedChannel ? (
+                    <Link
+                      href={`/channel?handle=${encodeURIComponent(ownedChannel.handle)}`}
+                      onClick={() => setOpen(false)}
+                      className="flex w-full items-center gap-4 px-4 py-2.5 text-left text-sm text-foreground hover:bg-surface"
+                    >
+                      <Clapperboard className="size-5 shrink-0 text-foreground" />
+                      <span className="flex-1 font-medium">Your channel</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/you/create"
+                      onClick={() => setOpen(false)}
+                      className="flex w-full items-center gap-4 px-4 py-2.5 text-left text-sm text-foreground hover:bg-surface"
+                    >
+                      <Plus className="size-5 shrink-0 text-foreground" />
+                      <span className="flex-1 font-medium">Create a channel</span>
+                    </Link>
+                  )}
+                </>
+              )}
 
               {isAdmin && (
                 <Link

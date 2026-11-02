@@ -23,7 +23,7 @@ const mainNav: { label: string; icon: LucideIcon; href: string; active?: boolean
 ];
 
 const libraryNav: { label: string; icon: LucideIcon; href: string }[] = [
-  { label: "Library", icon: Library, href: "#" },
+  { label: "Library", icon: Library, href: "/you" },
   { label: "History", icon: History, href: "#" },
   { label: "Watch Later", icon: ClockPlus, href: "#" },
   { label: "Liked Videos", icon: ThumbsUp, href: "#" },

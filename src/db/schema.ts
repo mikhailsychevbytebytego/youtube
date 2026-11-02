@@ -66,7 +66,7 @@ export const channels = pgTable(
   },
   (table) => [
     uniqueIndex("channels_handle_idx").on(table.handle),
-    index("channels_user_id_idx").on(table.userId),
+    uniqueIndex("channels_user_id_idx").on(table.userId),
     pgPolicy("channels_select_all", {
       for: "select",
       to: [anonRole, authenticatedRole],

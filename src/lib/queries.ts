@@ -589,6 +589,24 @@ export async function getSidebarChannels(
   }));
 }
 
+export const getChannelForUser = cache(async (userId: string) => {
+  return db.query.channels.findFirst({
+    where: eq(channels.userId, userId),
+  });
+});
+
+export async function getOwnedChannelVideos(
+  channel: Channel,
+  limit = 12,
+): Promise<VideoWithChannel[]> {
+  const rows = await db.query.videos.findMany({
+    where: and(eq(videos.channelId, channel.id), eq(videos.isPublished, true)),
+    orderBy: desc(videos.publishedAt),
+    limit,
+  });
+  return rows.map((video) => ({ ...video, channel }));
+}
+
 export async function getIsSubscribed(
   userId: string | undefined,
   channelId: string,

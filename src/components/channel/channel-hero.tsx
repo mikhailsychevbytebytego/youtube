@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronRight, PawPrint, Search } from "lucide-react";
 import type { Channel } from "@/db/schema";
 import { formatCount } from "@/lib/format";
@@ -16,9 +17,11 @@ const channelTabs = [
 export function ChannelHero({
   channel,
   initialSubscribed,
+  isOwner = false,
 }: {
   channel: Channel;
   initialSubscribed?: boolean;
+  isOwner?: boolean;
 }) {
   return (
     <>
@@ -67,13 +70,22 @@ export function ChannelHero({
               </span>
               <ChevronRight className="size-4 text-muted" />
             </button>
-            <SubscribeButton
-              channelId={channel.id}
-              initialSubscribed={initialSubscribed}
-              subscriberCount={channel.subscriberCount}
-              size="lg"
-              className="self-start"
-            />
+            {isOwner ? (
+              <Link
+                href="/you"
+                className="self-start rounded-full bg-surface px-4 py-2 text-sm font-semibold text-foreground hover:bg-border"
+              >
+                Customize channel
+              </Link>
+            ) : (
+              <SubscribeButton
+                channelId={channel.id}
+                initialSubscribed={initialSubscribed}
+                subscriberCount={channel.subscriberCount}
+                size="lg"
+                className="self-start"
+              />
+            )}
           </div>
         </div>
 

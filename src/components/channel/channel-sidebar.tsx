@@ -24,9 +24,9 @@ const mainNav: { label: string; icon: LucideIcon; href: string }[] = [
 ];
 
 const libraryNav: { label: string; icon: LucideIcon; href: string }[] = [
-  { label: "Library", icon: Library, href: "#" },
+  { label: "Library", icon: Library, href: "/you" },
   { label: "History", icon: History, href: "#" },
-  { label: "Your videos", icon: Video, href: "#" },
+  { label: "Your videos", icon: Video, href: "/you" },
   { label: "Watch later", icon: Clock, href: "#" },
   { label: "Liked videos", icon: ThumbsUp, href: "#" },
 ];

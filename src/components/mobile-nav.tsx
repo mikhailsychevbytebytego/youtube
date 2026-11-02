@@ -18,10 +18,10 @@ const items: {
     match: (p) => p.startsWith("/shorts"),
   },
   {
-    href: "/channel",
+    href: "/you",
     label: "You",
     icon: Library,
-    match: (p) => p.startsWith("/channel"),
+    match: (p) => p.startsWith("/you"),
   },
 ];
 

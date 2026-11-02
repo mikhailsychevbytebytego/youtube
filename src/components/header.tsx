@@ -61,9 +61,13 @@ export function Header({
         >
           <Search className="size-6 text-foreground" />
         </button>
-        <button aria-label="Create" className="hidden md:block">
+        <Link
+          href="/you"
+          aria-label="Create"
+          className="hidden md:block"
+        >
           <CircleX className="size-6 text-foreground" />
-        </button>
+        </Link>
         <button aria-label="Notifications" className="hidden md:block">
           <BellDot className="size-6 text-foreground" />
         </button>
