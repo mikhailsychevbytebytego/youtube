@@ -23,17 +23,19 @@ npm install
 
 Then read `EXERCISE-0010-nextjs-setup.md` on that branch.
 
-The finished application is on **`0250-ai-visual-testing`**.
+The finished application is on **`0270-assignment-07-video-uploads`**.
 
 Week 1 ends at `0040-channel-page`. Two homework assignments follow it (`0050`, `0060`)
 before the course moves onto Supabase. Week 2 ends at `0140-cloudflare-media`. Assignment
 3 (`0150`) follows it before CLIP. Week 3 ends at `0180-related-videos`. Assignments 4
-and 5 (`0190`, `0200`) follow it before the appearance menu. Zip snapshots ship as
-GitHub Release assets:
+and 5 (`0190`, `0200`) follow it before the appearance menu. Week 4 ends at
+`0250-ai-visual-testing`. Assignments 6 and 7 (`0260`, `0270`) follow it. Zip snapshots
+ship as GitHub Release assets:
 
 - `week-1`: `final.zip` / `assignment.zip` (end of week 1) and `solution.zip` (both assignments done)
 - `week-2`: `final.zip` (through Cloudflare media) and `solution.zip` (assignment 3 / mweb done)
 - `week-3`: `final.zip` (through related videos) and `solution.zip` (assignments 4 and 5 done)
+- `week-4`: `final.zip` (through visual testing) and `solution.zip` (assignments 6 and 7 done)
 
 ---
 
@@ -119,7 +121,9 @@ exactly what one exercise adds.
 | `0220-video-autoplay-and-watch-time` | Autoplay, watch time tracking, admin analytics |
 | `0230-video-generation-caching-and-cleanup` | Video generation caching and mock data cleanup |
 | `0240-channel-subscriptions-and-cat-confetti` | Subscriptions, subscription feed, cat confetti |
-| `0250-ai-visual-testing` | AI-driven visual & E2E testing — **the complete project** |
+| `0250-ai-visual-testing` | AI-driven visual & E2E testing — **end of week 4 / live session** |
+| `0260-assignment-06-channel-creation` | Homework: channel creation, personal page, public channel |
+| `0270-assignment-07-video-uploads` | Homework: creator uploads to Cloudflare Stream — **the complete project** |
 
 ### The four home-page variants at step 0020
 
@@ -152,7 +156,7 @@ Both branches fork from `0160-clip-embeddings` and wire the same `/search` page 
 - `main` — this signpost. No code.
 - `archive/pre-course-demo` — an early standalone prototype with completely unrelated git
   history, built before most of the course existed. It is **not** the finished project and
-  is kept only for reference. The finished project is `0250-ai-visual-testing`.
+  is kept only for reference. The finished project is `0270-assignment-07-video-uploads`.
 
 ---
 
@@ -196,7 +200,7 @@ do not need all of this on day one.
 ## 6. Running the finished project
 
 ```bash
-git checkout 0250-ai-visual-testing
+git checkout 0270-assignment-07-video-uploads
 npm install
 # create .env at the repo root with the variables from section 5
 npm run db:push          # create the schema
